@@ -1,251 +1,205 @@
 /**
- * Utility to map Sudanese SMILE Syllabus Grade 1 (Book 1) units and lessons 
- * to high-quality, cartoon, watercolor, or flat illustration educational images.
- * Tailored beautifully to represent Sudanese culture, geography, and real-life learning context.
+ * Utility to map Sudanese SMILE Syllabus Grade 3 (Book 1) units and lessons
+ * to dedicated, high-quality, culturally authentic educational illustrations.
+ * Incorporates custom Nano Banana storybook illustrations and tailored educational visuals.
  */
 
 const LESSON_IMAGE_MAP: Record<string, string> = {
-  // UNIT 1: English is Everywhere
-  "1-1": "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=800&q=80", // Holiday Fun (Children playing volleyball/holiday)
-  "1-2": "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=800&q=80", // The Princess and the Ring (Magic princess watercolor)
-  "1-3": "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=800&q=80", // Working the Land (Grandfather agricultural field)
-  "1-4": "https://images.unsplash.com/photo-1546182990-dffeafbe841d?auto=format&fit=crop&w=800&q=80", // World of Animals (Savanna lions)
-  "1-5": "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?auto=format&fit=crop&w=800&q=80", // Osman Digna (Suakin/historic city souq)
-  "1-6": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80", // Travel and Celebrations (Port Sudan sea / beach)
-  "1-7": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80", // Future Ambitions (Students learning inside class)
-  "1-8": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=800&q=80", // Revision: Learning English (Reading notebooks / study)
-
-  // UNIT 2: Relationships
-  "2-1": "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80", // Preparing for Heavy Rain (Nafeer repairing mud walls)
-  "2-2": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=800&q=80", // Hassan and Hussain (Twins playing football / reading)
-  "2-3": "https://images.unsplash.com/photo-1560114928-40f1f1eb26a0?auto=format&fit=crop&w=800&q=80", // Amur and Timur (Tiger and brave goat in zoo)
-  "2-4": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=800&q=80", // My Best Friend Jane (Studying day and night / exams)
-  "2-5": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80", // Plans with Friends (Eid dinner party)
-  "2-6": "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80", // Winning the Match (Football coach with team)
-  "2-7": "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=80", // Friends for Life (Wedding / friends getting married)
-  "2-8": "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=800&q=80", // Childhood Friends (Adam and Ali reunion)
-
-  // UNIT 3: Going Places
-  "3-1": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=800&q=80", // Where is Sudan? (Northeast Africa map/Nile river)
-  "3-2": "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=800&q=80", // Climbing Mount Everest (Everest climb illustration)
-  "3-3": "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=800&q=80", // Journeys of Ibn Battuta (Ancient ship compass)
-  "3-4": "https://images.unsplash.com/photo-1586724237569-f38039663a06?auto=format&fit=crop&w=800&q=80", // Shanghai! (Maglev train futuristic track)
-  "3-5": "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=800&q=80", // Early Sudanese Traders (Caravans of camels on desert)
-  "3-6": "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=800&q=80", // Nuba Mountains! (Wrestling / scenic villages)
-  "3-7": "https://images.unsplash.com/photo-1501535033-a59396afb33d?auto=format&fit=crop&w=800&q=80", // Trip to Kenya! (Maasai Mara wildlife)
-  "3-8": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80", // Revision: Travelling to Sudan (Richard and Kate teaching)
-
-  // UNIT 4: Arts and Literature
-  "4-1": "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=80", // Juha's Nail (Juha knocking on house wall)
-  "4-2": "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=800&q=80", // Dukan Wad Al-Baseer (Good handwriting/wise proverbs)
-  "4-3": "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=800&q=80", // Advice from my Heart (Grandfather tree / sun fireball)
-  "4-4": "https://images.unsplash.com/photo-1560114928-40f1f1eb26a0?auto=format&fit=crop&w=800&q=80", // Cartoons! (Salim sleeping and running late)
-  "4-5": "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=800&q=80", // Who am I? (Famous Sudanese poet game)
-  "4-6": "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=800&q=80", // Oliver Twist Wants More! (Oliver holding soup bowl)
-  "4-7": "https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=800&q=80", // Oliver Twist Meets Fagin (Dodger and cold cell)
-  "4-8": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80", // Revision: Traditional Stories (Juha and ten camels)
-
-  // UNIT 5: Science
-  "5-1": "https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&w=800&q=80", // Solar Power (Solar panels electricity Sudan)
-  "5-2": "https://images.unsplash.com/photo-1511381939415-e44015463834?auto=format&fit=crop&w=800&q=80", // Chocolate Factory (Cocoa beans drying and roasting)
-  "5-3": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80", // Population Statistics (Census graphs and surveys)
-  "5-4": "https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=800&q=80", // Day in the Life of a Bee (Bee pollinating flower eggs)
-  "5-5": "https://images.unsplash.com/photo-1583795484071-3c453e3a7c71?auto=format&fit=crop&w=800&q=80", // Bites and Stings (Washing bee sting with soap)
-  "5-6": "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80", // Cars (Uncle Ibrahim filling radiator)
-  "5-7": "https://images.unsplash.com/photo-1532187863486-abf9d39d66e8?auto=format&fit=crop&w=800&q=80", // Floating Egg Experiment (Dissolving salt in glass)
-  "5-8": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80", // Revision: All about Science (Modern lab and review)
-
-  // UNIT 6: Hobbies and Pastimes
-  "6-1": "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80", // Unexpected Victory (El Obeid Hilal team triumph)
-  "6-2": "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=80", // Sudanese Handicrafts (Leather sandals and beads)
-  "6-3": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80", // Photography (Cows and white birds scenery)
-  "6-4": "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=800&q=80", // Unusual Hobbies (Stamps, painted eggshells, insects)
-  "6-5": "https://images.unsplash.com/photo-1507668077129-56e32842fceb?auto=format&fit=crop&w=800&q=80", // Hobbies: Then and Now (Grandfather playing drum)
-  "6-6": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=800&q=80", // Enjoying Reading (Little Women sisters sharing dreams)
-  "6-7": "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=800&q=80", // Scouts and Guides (Volunteers helping elderly Khadijah)
-  "6-8": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=800&q=80", // Revision: My Hobbies (Guitar, photography, and books)
-
-  // UNIT 7: Money and Trade
-  "7-1": "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=800&q=80", // Currencies (Euro coins, UK pound bills, Japanese Yen)
-  "7-2": "https://images.unsplash.com/photo-1542744094-3a31f103e35f?auto=format&fit=crop&w=800&q=80", // Where Was It Made? (Global goods label inspection)
-  "7-3": "https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?auto=format&fit=crop&w=800&q=80", // Sudanese Exports (Container ship carrying sweet mangoes)
-  "7-4": "https://images.unsplash.com/photo-1521791136364-7286472b5399?auto=format&fit=crop&w=800&q=80", // Trading Partners (China, India, Brazil agricultural equipment)
-  "7-5": "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=800&q=80", // Read the Label Carefully! (Food nutritional information labels)
-  "7-6": "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?auto=format&fit=crop&w=800&q=80", // From Farm to Home (Wholesaler, retailer, and consumer)
-  "7-7": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80", // Camel Market (Darfur camels exported to Egypt)
-  "7-8": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80", // Revision: Not Only Money (Viewpoints on natural resources)
-
-  // UNIT 8: Our Bodies
-  "8-1": "https://images.unsplash.com/photo-1505576399279-565b52d4ac71?auto=format&fit=crop&w=800&q=80", // Looking after Your Body (Doctor Ayman advising on dehydration)
-  "8-2": "https://images.unsplash.com/photo-1532187863486-abf9d39d66e8?auto=format&fit=crop&w=800&q=80", // Broken Bones (Munira wrist X-ray check)
-  "8-3": "https://images.unsplash.com/photo-1530210124550-912dc1381cb8?auto=format&fit=crop&w=800&q=80", // The Heart (Left and right chambers pumping oxygen)
-  "8-4": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=800&q=80", // A Dehydrated Child (Stopping the bus near El-Gadarif hospital)
-  "8-5": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80", // Amazing Abilities (Strongest man Dennis and math genius)
-  "8-6": "https://images.unsplash.com/photo-1507668077129-56e32842fceb?auto=format&fit=crop&w=800&q=80", // The Brain (Anatomy of the water-rich brain cells)
-  "8-7": "https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?auto=format&fit=crop&w=800&q=80", // Memory Games (Matching card pairs in classroom)
-  "8-8": "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80", // Revision: Our Amazing Bodies (Protecting lungs with ribs)
-
-  // UNIT 9: Wonderful Sudan
-  "9-1": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=800&q=80", // Sudanese Place Names (Kosti, Fashir, Tuti meaning)
-  "9-2": "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=800&q=80", // Sudanese Languages (Nubian, Beja greeting Dabaywa)
-  "9-3": "https://images.unsplash.com/photo-1583795484071-3c453e3a7c71?auto=format&fit=crop&w=800&q=80", // King Piankhi (Ancient Kingdom of Kush and pyramids)
-  "9-4": "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80", // Al Neelain Mosque (Omdurman shell-shaped dome mosque)
-  "9-5": "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=800&q=80", // Kenana (Sugarcane fields and green agricultural plant)
-  "9-6": "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=800&q=80", // Ottoman Rule (Pasha invading Sudan in 1820)
-  "9-7": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80", // Future Sudan (Tablets replacing books and robots)
-  "9-8": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=800&q=80", // Revision: My Sudan (East and west geographic landmarks)
-
-  // UNIT 10: Health and Environment
-  "10-1": "https://images.unsplash.com/photo-1505252585461-04db1eb84625?auto=format&fit=crop&w=800&q=80", // The Ecosystem (Pond ecology, plants, and frogs)
-  "10-2": "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80", // Water Pollution (Clean drinking water sanitation)
-  "10-3": "https://images.unsplash.com/photo-1584035133571-c88b3d8d94e1?auto=format&fit=crop&w=800&q=80", // Epidemics (WHO vaccine campaign and handwashing)
-  "10-4": "https://images.unsplash.com/photo-1583795484071-3c453e3a7c71?auto=format&fit=crop&w=800&q=80", // Colds and Flu (Consulting doctor Israa on sudden fever)
-  "10-5": "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=800&q=80", // Don't Smoke! (Breathing troubles and healthy heart)
-  "10-6": "https://images.unsplash.com/photo-1463936575829-25148e1db1b8?auto=format&fit=crop&w=800&q=80", // Herbal Medicine in Sudan (Moringa, Garad, Hibiscus)
-  "10-7": "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=800&q=80", // Healthy Living (Walking instead of fuel-polluted driving)
-  "10-8": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80", // Revision: A Healthy World (Safer houses, concrete roads, Oxfam)
-
-  // UNIT 11: Amazing People, Animals and Places
-  "11-1": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80", // The Maasai (Maasai pastoralist culture)
-  "11-2": "https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?auto=format&fit=crop&w=800&q=80", // Amazing World Records (Makkah Clock and Somalia giant)
-  "11-3": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80", // Alexandria Lighthouse (Wonders of ancient history)
-  "11-4": "https://images.unsplash.com/photo-1507668077129-56e32842fceb?auto=format&fit=crop&w=800&q=80", // Talking Parrots (Mimicking human speech)
-  "11-5": "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=800&q=80", // An Amazing Child (Awad helping tea ladies in market)
-  "11-6": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80", // Finland's 24-hour Sun (Midnight sun on lakes)
-  "11-7": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=800&q=80", // Two Famous English Novelists (Bronte Jane Eyre and Charles Dickens)
-  "11-8": "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=800&q=80", // Revision: Amazing Wonders (Stonehenge and Great Wall of China)
-
-  // UNIT 12: Finishing Up
-  "12-1": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=800&q=80", // Relationships: Twin Passions (Lina and Doha 15)
-  "12-2": "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?auto=format&fit=crop&w=800&q=80", // The Arts: Wise Old Man (Burying money by the Nile garden)
-  "12-3": "https://images.unsplash.com/photo-1530210124550-912dc1381cb8?auto=format&fit=crop&w=800&q=80", // Amazing Organs (Heart/lungs producing oxygen energy)
-  "12-4": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=800&q=80", // A Sudanese Adventure (Alex exploring wildlife at Dinder)
-  "12-5": "https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?auto=format&fit=crop&w=800&q=80", // River Crossing Logic Puzzle (Farmer crossing with fox/goat/straw)
-  "12-6": "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=800&q=80", // Trade (Sudanese exports agricultural percentages)
-  "12-7": "https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&w=800&q=80", // Solar Panels & Electric Cars (Green transport future)
-  "12-8": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80", // Revision: The End! (Finishing Grade 1 secondary SMILE)
+  "1-1": "/illustrations/lessons/u1_l1.jpg", // Lesson 1: Hello!
+  "1-2": "/illustrations/lessons/u1_l2.jpg", // Lesson 2: Numbers 1 to 4
+  "1-3": "https://images.unsplash.com/photo-1596495578065-6e0763fa1178?auto=format&fit=crop&w=800&q=80", // Lesson 3: Numbers 5 to 10
+  "1-4": "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=800&q=80", // Lesson 4: What's your name?
+  "1-5": "/illustrations/lessons/u1_l5.jpg", // Lesson 5: This is Eddie
+  "1-6": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=800&q=80", // Lesson 6: Are you Sudanese?
+  "1-7": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=800&q=80", // Lesson 7: How are you?
+  "1-8": "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?auto=format&fit=crop&w=800&q=80", // Lesson 8: Phonics Song
+  "2-1": "/illustrations/lessons/u2_l1.jpg", // Lesson 1: Crocodile Chant
+  "2-2": "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=800&q=80", // Lesson 2: How old are you?
+  "2-3": "https://images.unsplash.com/photo-1505252585461-04db1eb84625?auto=format&fit=crop&w=800&q=80", // Lesson 3: How many frogs?
+  "2-4": "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80", // Lesson 4: Ten Cats
+  "2-5": "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?auto=format&fit=crop&w=800&q=80", // Lesson 5: Little Ali is Lost
+  "2-6": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80", // Lesson 6: Ali Finds His Mum
+  "2-7": "https://images.unsplash.com/photo-1508057198894-247b23fe5ade?auto=format&fit=crop&w=800&q=80", // Lesson 7: What's the time?
+  "2-8": "https://images.unsplash.com/photo-1503676382389-4809596d5290?auto=format&fit=crop&w=800&q=80", // Lesson 8: Phonics (m to z)
+  "3-1": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=800&q=80", // Lesson 1: Point to Colours
+  "3-2": "https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?auto=format&fit=crop&w=800&q=80", // Lesson 2: Colour Bingo
+  "3-3": "https://images.unsplash.com/photo-1508873696983-2df5293cb325?auto=format&fit=crop&w=800&q=80", // Lesson 3: Traffic Lights
+  "3-4": "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=80", // Lesson 4: What colour is it?
+  "3-5": "/illustrations/lessons/u3_l5.jpg", // Lesson 5: Our Sudanese Flag
+  "3-6": "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=800&q=80", // Lesson 6: Cathy's Picture
+  "3-7": "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80", // Lesson 7: Ali is Lost (Eyes and Hair)
+  "3-8": "https://images.unsplash.com/photo-1472162072942-cd5147eb3902?auto=format&fit=crop&w=800&q=80", // Lesson 8: Finding Ali
+  "4-1": "https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?auto=format&fit=crop&w=800&q=80", // Lesson 1: Lemons and Melons
+  "4-2": "https://images.unsplash.com/photo-1485546246426-74dc88dec4d9?auto=format&fit=crop&w=800&q=80", // Lesson 2: Who is that boy?
+  "4-3": "https://images.unsplash.com/photo-1505576399279-565b52d4ac71?auto=format&fit=crop&w=800&q=80", // Lesson 3: My Body
+  "4-4": "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80", // Lesson 4: How old are you? (Cards)
+  "4-5": "https://images.unsplash.com/photo-1534567153574-2b12153a87f0?auto=format&fit=crop&w=800&q=80", // Lesson 5: Animal Features
+  "4-6": "/illustrations/lessons/u4_l6.jpg", // Lesson 6: Gonfooth the Hedgehog
+  "4-7": "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=800&q=80", // Lesson 7: Photos of Sudan
+  "4-8": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=800&q=80", // Lesson 8: Names with A and B
+  "5-1": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=800&q=80", // Lesson 1: Point to the Class
+  "5-2": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80", // Lesson 2: What's in the bag?
+  "5-3": "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80", // Lesson 3: Photos from School
+  "5-4": "/illustrations/lessons/u5_l4.jpg", // Lesson 4: The Monkey on the Chair
+  "5-5": "https://images.unsplash.com/photo-1558060370-d644479cb6f7?auto=format&fit=crop&w=800&q=80", // Lesson 5: Where's my toy?
+  "5-6": "https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80", // Lesson 6: Sukkar's Tail
+  "5-7": "https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=800&q=80", // Lesson 7: Where's the ruler?
+  "5-8": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80", // Lesson 8: Hello, I'm Hassan
+  "6-1": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=800&q=80", // Lesson 1: In the Kitchen
+  "6-2": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?auto=format&fit=crop&w=800&q=80", // Lesson 2: Town Places
+  "6-3": "https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=800&q=80", // Lesson 3: Where do you live?
+  "6-4": "https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=800&q=80", // Lesson 4: Sea, Shell and Well
+  "6-5": "/illustrations/lessons/u6_l5.jpg", // Lesson 5: Animals and Trees
+  "6-6": "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=800&q=80", // Lesson 6: Plant the Seeds
+  "6-7": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80", // Lesson 7: Where I Live
+  "6-8": "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", // Lesson 8: My Home is Best
+  "7-1": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=800&q=80", // Lesson 1: This is me
+  "7-2": "/illustrations/lessons/u7_l2.jpg", // Lesson 2: Dalia's Family Tree
+  "7-3": "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?auto=format&fit=crop&w=800&q=80", // Lesson 3: Have you got any brothers?
+  "7-4": "https://images.unsplash.com/photo-1476703993599-0035a21b17a9?auto=format&fit=crop&w=800&q=80", // Lesson 4: Rami and his Sisters
+  "7-5": "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=800&q=80", // Lesson 5: Stand next to your brother
+  "7-6": "https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&w=800&q=80", // Lesson 6: The Baby Chick
+  "7-7": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=800&q=80", // Lesson 7: Adil's Day
+  "7-8": "https://images.unsplash.com/photo-1609234656388-0ff363383899?auto=format&fit=crop&w=800&q=80", // Lesson 8: Family Revision
+  "8-1": "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=800&q=80", // Lesson 1: What can you see?
+  "8-2": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80", // Lesson 2: Simple Commands
+  "8-3": "https://images.unsplash.com/photo-1544717302-de2939b7ef71?auto=format&fit=crop&w=800&q=80", // Lesson 3: I can do actions!
+  "8-4": "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=800&q=80", // Lesson 4: Number Math
+  "8-5": "https://images.unsplash.com/photo-1552728089-57bdde30beb3?auto=format&fit=crop&w=800&q=80", // Lesson 5: Bulbul and Billi Birds
+  "8-6": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80", // Lesson 6: Sand and Sea
+  "8-7": "https://images.unsplash.com/photo-1596838132731-3301c3fd4317?auto=format&fit=crop&w=800&q=80", // Lesson 7: Wheels on the Car
+  "8-8": "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=800&q=80", // Lesson 8: Action Verbs Revision
+  "9-1": "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=800&q=80", // Lesson 1: Farm Animals Rhyme
+  "9-2": "https://images.unsplash.com/photo-1546182990-dffeafbe841d?auto=format&fit=crop&w=800&q=80", // Lesson 2: Nile Animals
+  "9-3": "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=800&q=80", // Lesson 3: Map of Sudan & Habitats
+  "9-4": "https://images.unsplash.com/photo-1534188753412-3e26d0d618d6?auto=format&fit=crop&w=800&q=80", // Lesson 4: Animal Abilities
+  "9-5": "https://images.unsplash.com/photo-1564349683136-77e08dba1ef6?auto=format&fit=crop&w=800&q=80", // Lesson 5: Actions Grid
+  "9-6": "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=800&q=80", // Lesson 6: Camels of the Desert
+  "9-7": "/illustrations/lessons/u9_l7.jpg", // Lesson 7: Waheed the Camel
+  "9-8": "https://images.unsplash.com/photo-1501535033-a59396afb33d?auto=format&fit=crop&w=800&q=80", // Lesson 8: Animals in Nature
+  "10-1": "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800&q=80", // Lesson 1: Food and Body Rhyme
+  "10-2": "https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?auto=format&fit=crop&w=800&q=80", // Lesson 2: In the Fridge & On the Shelf
+  "10-3": "https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=800&q=80", // Lesson 3: Fruit or Vegetable?
+  "10-4": "/illustrations/lessons/u10_l4.jpg", // Lesson 4: How to Make Mango Juice
+  "10-5": "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80", // Lesson 5: The Five Senses
+  "10-6": "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80", // Lesson 6: Fruit and Vegetables Science
+  "10-7": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80", // Lesson 7: Sudanese Breakfast
+  "10-8": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80", // Lesson 8: Food Revision
+  "11-1": "https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?auto=format&fit=crop&w=800&q=80", // Lesson 1: Where is the Museum?
+  "11-2": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80", // Lesson 2: What can we do there?
+  "11-3": "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?auto=format&fit=crop&w=800&q=80", // Lesson 3: In the Park
+  "11-4": "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=800&q=80", // Lesson 4: Keep the Park Tidy
+  "11-5": "https://images.unsplash.com/photo-1584697964190-7bb0db32e0e9?auto=format&fit=crop&w=800&q=80", // Lesson 5: Rubbish in the Classroom
+  "11-6": "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=800&q=80", // Lesson 6: Caring for our Environment
+  "11-7": "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=800&q=80", // Lesson 7: Two Trees Tale
+  "11-8": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80", // Lesson 8: Environment Revision
+  "12-1": "/illustrations/lessons/u12_l1.jpg", // Lesson 1: Clothes on the Line
+  "12-2": "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=800&q=80", // Lesson 2: Whose is this?
+  "12-3": "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80", // Lesson 3: Grandma's Eid Clothes
+  "12-4": "https://images.unsplash.com/photo-1575550959106-5a7defe28b56?auto=format&fit=crop&w=800&q=80", // Lesson 4: Eid at the Zoo
+  "12-5": "https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?auto=format&fit=crop&w=800&q=80", // Lesson 5: Visiting Grandma's House
+  "12-6": "/illustrations/lessons/u12_l6.jpg", // Lesson 6: How to Bake an Eid Cake
+  "12-7": "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=80", // Lesson 7: Eid Morning Schedule
+  "12-8": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80", // Lesson 8: Eid Manners & Revision
 };
 
 const LESSON_SUDANESE_CARTOON_DESC: Record<string, string> = {
-  // UNIT 1: English is Everywhere
-  "1-1": "رسوم توضيحية للألعاب والأنشطة المتنوعة التي مارسها الطلاب خلال العطلة المدرسية.",
-  "1-2": "لوحة كرتونية تجسد قصة الأميرة سميرة وخاتمها الذهبي السحري الذي يحقق الأمنيات.",
-  "1-3": "تمثيل لعمل الفتاة سلمى مع أجدادها في الأراضي الزراعية تحت شمس السودان الدافئة.",
-  "1-4": "رسم توضيحي يعرض الحيوانات النافعة والخطيرة كالمسكيت والغوريلا وضرورة حمايتها.",
-  "1-5": "لوحة تاريخية للبطل السوداني عثمان دقنة بلحيته الطويلة وحروبه في شرق السودان.",
-  "1-6": "رسم مائي لبورتسودان وموانئها المطلة على البحر الأحمر ومهرجان التسوق والسياحة.",
-  "1-7": "توضيح لطموحات الطلاب المستقبلية كالتعليم والبرمجة والبحث العلمي لمساعدة المجتمع.",
-  "1-8": "مجموعة من الطلاب يمارسون مهارات اللغة الإنجليزية المختلفة لخدمة مستقبلهم المهني.",
-
-  // UNIT 2: Relationships
-  "2-1": "رسم يجسد قيم النفير التطوعي في السودان وإصلاح جدران المنازل الطينية قبل الخريف.",
-  "2-2": "توضيح كرتوني للتوأمين المتطابقين حسن وحسين واختلاف هواياتهما ومزاحهما المرح.",
-  "2-3": "لوحة كرتونية دافئة تجسد الصداقة غير المألوفة بين النمر آمور والماعز الشجاع تيمور.",
-  "2-4": "رسم يعبر عن الضغط الدراسي والتوتر قبل الامتحانات وضرورة أخذ قسط من الراحة.",
-  "2-5": "رسالة هاتفية تفاعلية لتنظيم حفل عشاء وتواصل الأصدقاء للاحتفال بثاني أيام العيد.",
-  "2-6": "رسم لمدرب كرة القدم يحث فريقه على اللعب بإصرار وعزيمة لتحقيق الفوز الكروي.",
-  "2-7": "لوحة تعبر عن الصداقة القوية بين مروة وصديقتها منذ الطفولة والتحضير لمناسبة زواج سعيدة.",
-  "2-8": "رسم لأصدقاء الطفولة آدم وعلي في بورم بجنوب دارفور واسترجاع ذكريات اللعب الممتعة.",
-
-  // UNIT 3: Going Places
-  "3-1": "خريطة تفاعلية توضح موقع السودان الجغرافي المتميز في شمال شرق أفريقيا وجيرانه السبعة.",
-  "3-2": "رسم يعبر عن العزيمة والإصرار عند تسلق قمة جبل إيفرست ومواجهة العواصف الثلجية.",
-  "3-3": "لوحة مائية تجسد رحلات المستكشف ابن بطوطة ومغامراته البحرية والعواصف في البحر الأحمر.",
-  "3-4": "رسم كرتوني حديث لقطار ماجليف السريع وناطحات السحاب في مدينة شنغهاي المزدحمة.",
-  "3-5": "لوحة تجسد قوافل التجارة القديمة ودرب الأربعين بين الفاشر في دارفور وأسيوط بمصر.",
-  "3-6": "رسم كرتوني مبهج للجولات السياحية في جبال النوبة ومصارعة النوبة ورقصة الكمبلا الشعبية.",
-  "3-7": "رسم يعرض معالم السياحة في كينيا ورؤية الحيوانات الضخمة والمنطاد الهوائي الساخن.",
-  "3-8": "أصدقاء يتبادلون المعلومات حول الطقس والتقاليد السودانية ترحيباً بمتطوعي التدريس.",
-
-  // UNIT 4: Arts and Literature
-  "4-1": "قصة جحا ومسماره الشهير في جدار منزله وحيله الطريفة لإزعاج المشتري الجديد وتناول الطعام.",
-  "4-2": "لوحات إرشادية مكتوبة بخط يد سوداني جميل تحث الشباب على التحلي بالأخلاق والأدب.",
-  "4-3": "رسم شاعري يشبه الجد بالشجرة العظيمة المعطاءة والشمس بكرة اللهب المشتعلة في السماء.",
-  "4-4": "توضيح كرتوني هزلي لسليم وهو غارق في النوم ويسرع للحاق بـمواعيد المدرسة.",
-  "4-5": "طالبان يلعبان لعبة التخمين ومحاولة حزر اسم الشاعر السوداني الراحل الجيلي عبد الرحمن.",
-  "4-6": "رسم يجسد المشهد الشهير لأولفر تويست وهو يطلب المزيد من الطعام في ملجأ الأيتام.",
-  "4-7": "توضيح للشخصيات الشريرة في قصة أوليفر تويست مثل السيد ساوربيري والشرير فاجن.",
-  "4-8": "رسم طريف لجحا وهو يعد جماله العشرة وينسى عد الجمل الذي يركب فوقه.",
-
-  // UNIT 5: Science
-  "5-1": "رسم توضيحي لمنزل في السودان مزود بألواح شمسية لتوليد الكهرباء النظيفة والمجانية.",
-  "5-2": "رسم لخطوات تصنيع الشوكولاتة اللذيذة بدءاً من جني حبوب الكاكاو وحتى تغليفها.",
-  "5-3": "توضيح لكيفية استخدام الإحصاءات والرسوم البيانية لتعداد السكان وتخطيط الخدمات.",
-  "5-4": "رسم مجهري يوضح دور النحلة النشيطة في تلقيح الأزهار لإنتاج بذور ونباتات جديدة.",
-  "5-5": "تعليمات إسعاف أولية بسيطة للتعامل مع لسعات النحل وغسل مكان اللسعة بالصابون.",
-  "5-6": "رسم للعم إبراهيم وهو يفحص محرك سيارته القديمة ويملأ المبرد بالماء قبل السفر للخرطوم.",
-  "5-7": "رسم يوضح تجربة البيضة الطافية في الماء المالح وتفسير الكثافة الفيزيائية ببساطة.",
-  "5-8": "رسم يجمع موضوعات العلوم المتنوعة كالمحركات والكهرباء الشمسية وتصنيع الشوكولاتة.",
-
-  // UNIT 6: Hobbies and Pastimes
-  "6-1": "رسم يمثل الفرحة الغامرة لـلاعبي وجماهير هلال الأبيض بعد فوزهم غير المتوقع على هلال الخرطوم.",
-  "6-2": "رسم للحرف اليدوية السودانية الرائعة كالخرز الملون والجلود المصبوغة والمنحوتات الخشبية.",
-  "6-3": "رسم لمنظر طبيعي رائع يوضح توزيع الأبقار والطيور البيضاء لتعلم قواعد التصوير الفوتوغرافي.",
-  "6-4": "رسم لهوايات جمع الطوابع البريدية والرسم على البيض الفارغ وجمع الحشرات بالشبكة.",
-  "6-5": "توضيح للحياة البسيطة في الماضي ولعب كرة القدم والسباحة في النيل والعزف على الطبول.",
-  "6-6": "رسم يمثل حوار شقيقات رواية 'نساء صغيرات' وأحلامهن بالثراء والشهرة والموسيقى والكتابة.",
-  "6-7": "رسم لفرق الكشافة السودانية وهي تقوم بأعمال تطوعية لمساعدة كبار السن وإعداد الطعام للفقراء.",
-  "6-8": "رسم لخطاب متبادل يعرض هوايات العزف على الجيتار والتقاط الصور وممارسة كرة القدم.",
-
-  // UNIT 7: Money and Trade
-  "7-1": "رسم يوضح العملات العالمية المختلفة كالجنيه الإسترليني والين الياباني والعملة الموحدة 'اليورو'.",
-  "7-2": "رسم يعبر عن واردات السودان كالملابس الهندية والسيارات الكورية والبن الإثيوبي الفاخر.",
-  "7-3": "رسم لسفينة حاويات عملاقة في بورتسودان تصدر ملايين المانجو السودانية اللذيذة للأسواق.",
-  "7-4": "رسم يوضح الشراكات التجارية الكبرى للسودان مع الصين والهند والمملكة العربية السعودية والبرازيل.",
-  "7-5": "توضيح لأهمية قراءة ملصق الأغذية لمعرفة المكونات الغذائية وتاريخ الصلاحية والانتهاء.",
-  "7-6": "رسم يوضح دورة المنتج من المزارع (المنتج) لتاجر الجملة ثم التجزئة والزبون النهائي.",
-  "7-7": "رسم لسوق الإبل الشهير في السودان وتصدير الجمال لمصر عبر الشاحنات وتناول لحم الإبل الصحي.",
-  "7-8": "رسم يجمع آراء الناس حول دور الموارد الطبيعية والعمل الجاد في تحقيق التنمية والرخاء.",
-
-  // UNIT 8: Our Bodies
-  "8-1": "طبيب يقدم نصائح صحية هامة حول شرب الماء عند الشعور بالحر وممارسة التمارين.",
-  "8-2": "رسم يوضح مريضة تعرضت لكسر في المعصم أثناء لعب كرة الطائرة وتستعد لعمل أشعة سينية.",
-  "8-3": "رسم لقلب بشري يوضح حجراته وصماماته وأهمية الرياضة لتقوية عضلاته وضخ الأكسجين.",
-  "8-4": "رسم لحافلة ركاب تقف بالقرب من مستشفى القضارف لعلاج طفل مصاب بالجفاف أثناء السفر.",
-  "8-5": "رسم يعرض أشخاصاً بقدرات خارقة كصبي المطاط المرن وأقوى رجل وطفلة عبقرية الرياضيات.",
-  "8-6": "توضيح للدماغ البشري المكون بنسبة 75% من الماء وضرورة حمايته من الصدمات والضرر.",
-  "8-7": "أطفال يلعبون لعبة بطاقات الذاكرة ومطابقة الصور لتنمية خلايا الدماغ والقدرات الإدراكية.",
-  "8-8": "رسم تفاعلي للهيكل العظمي والضلوع التي تحمي الرئتين والجمجمة التي تحمي الذاكرة والدماغ.",
-
-  // UNIT 9: Wonderful Sudan
-  "9-1": "رسم يوضح معاني أسماء المدن السودانية مثل كوستي والفاشر وجزيرة توتي بلغة النوبة.",
-  "9-2": "رسم مبهج للغات السودانية المتنوعة كالنوبية في الشمال والبداويت في الشرق وترحيب 'دبايوا'.",
-  "9-3": "لوحة تاريخية للملك الكوشي بعنخي وهو يوحد مملكتي كوش ومصر تحت حكم الفراعنة النوبيين.",
-  "9-4": "رسم هندسي رائع لـمسجد النيلين في أم درمان بقبته الفريدة التي تشبه الصدفة عند ملتقى النيلين.",
-  "9-5": "رسم لحقول قصب السكر الواسعة ومصنع سكر كنانة الشهير الذي ينتج السكر منذ عقود.",
-  "9-6": "لوحة مائية تجسد العهد العثماني في السودان وتأثيراته التجارية والزراعية والتعليمية.",
-  "9-7": "رسم مستقبلي تفاعلي يمثل تطلعات الطلاب كاستبدال الكتب بالأجهزة اللوحية واستخدام الروبوتات.",
-  "9-8": "رسم لخريطة السودان يعرض أسماء المدن التي تبدأ بـ 'أبو' أو 'أم' والأسماء البجاوية في الشرق.",
-
-  // UNIT 10: Health and Environment
-  "10-1": "رسم يمثل التوازن البيئي في بركة مياه وتفاعل النباتات والحشرات والضفادع والطيور.",
-  "10-2": "رسم يعرض مشكلة تلوث المياه وأهمية توفير المياه النظيفة للفتيات ليذهبن للمدارس.",
-  "10-3": "رسم لجهود منظمة الصحة العالمية في التوعية ضد الأوبئة وأهمية التطعيم واللقاحات.",
-  "10-4": "رسم يوضح الفرق بين أعراض الزكام والإنفلونزا وقياس درجات الحرارة والراحة.",
-  "10-5": "رسم توعوي يحذر من مخاطر التدخين على صحة المدخن وأطفاله وضرورة الإقلاع عنه.",
-  "10-6": "لوحة مائية تعرض الأعشاب الطبية السودانية كالمورينجا وزيت السمسم والكركديه والقرض.",
-  "10-7": "رسم كرتوني يحث على المشي لمسافات قصيرة واستخدام سيارات أقل تلوثاً لنقاء الهواء.",
-  "10-8": "أطفال يشاركون آرائهم حول ما سيفعلونه لو كانوا رؤساء كبناء مستشفيات وتوفير مياه شرب نظيفة.",
-
-  // UNIT 11: Amazing People, Animals and Places
-  "11-1": "رسم كرتوني يعرض نمط حياة قبيلة الماساي الرعوية وطموح الفتى ليشان ليصبح معلماً.",
-  "11-2": "رسم لأرقام قياسية عالمية كساعة مكة الشامخة والعملاق الصومالي وأكبر يقطينة.",
-  "11-3": "لوحة تاريخية لمنارة الإسكندرية القديمة ومكتبتها التاريخية التي دمرتها الحرائق.",
-  "11-4": "رسم طريف لمنصور وببغائه الذكي الذي يقلد أصوات البشر ببراعة ومرح.",
-  "11-5": "رسم للصبي الطموح عوض وهو يساعد بائعات الشاي في السوق لإعالة أسرته المريضة.",
-  "11-6": "لوحة تجسد شمس منتصف الليل في فنلندا والبحيرات الجميلة ونشاط العائلات تحت الشمس.",
-  "11-7": "رسم بورتريه للكاتبة شارلوت برونتي وروايتها جين إير والكاتب العظيم تشارلز ديكنز.",
-  "11-8": "رسم للمعالم التاريخية القديمة كأحجار ستونهنج وأهرامات الجيزة وسور الصين العظيم.",
-
-  // UNIT 12: Finishing Up
-  "12-1": "رسم يوضح التوأم لينا وضحى وااختلاف اهتماماتهما بين القراءة والزراعة ونصيحة الجدة الحكيمة.",
-  "12-2": "لوحة للرجل الحكيم الذي يدفن الأموال في حديقته بالقرية ويعيرها للمحتاجين بشرط إعادتها.",
-  "12-3": "رسم توضيحي للقلب والرئتين والدماغ ودورها الحيوي في إنتاج الطاقة باستخدام الأكسجين.",
-  "12-4": "رسم للمستكشف أليكس وهو يستمتع بـمحمية الدندر وآثار سواكن وكرم الضيافة السوداني.",
-  "12-5": "رسم للغز المزارع الذي يريد عبور النيل مع ثعلب وماعز وقش باستخدام قارب صغير.",
-  "12-6": "رسم بياني يوضح نسب الصادرات السودانية حيث تشكل المنتجات الزراعية النسبة الأكبر.",
-  "12-7": "رسم كرتوني مبهج للمستقبل واستخدام السيارات الكهربائية النظيفة والألواح الشمسية الرخيصة.",
-  "12-8": "أطفال يحتفلون بانتهاء منهج الصف الأول الثانوي وإنجازاتهم الأكاديمية وطموحات العطلة."
+  "1-1": "لوحة نانو بنانا كرتونية مبهجة لطلاب سودانيين بالزي المدرسي يلوحون بالتحية خارج فصل مدرستهم الابتدائية تحت شجرة النيم في يوم مشمس.",
+  "1-2": "رسم نانو بنانا تعليمي مرح يعرض الأرقام 1 و 2 و 3 و 4 بألوان زاهية مع تفاحة واحدة وحقيبتين وثلاثة أسرة وأربع قبعات داخل الفصل.",
+  "1-3": "مكعبات ملونة وأرقام خشبية زاهية من 5 إلى 10 تساعد تلميذ الصف الثالث على عد الأدوات والمجسمات في ركن الرياضيات.",
+  "1-4": "أطفال صغار في ساحة المدرسة يتعرفون على بعضهم البعض بابتسامة ويسألون عن الأسماء بأسلوب ودود ومبهج.",
+  "1-5": "لوحة نانو بنانا معبرة لداليا وهي تقدم صديقها إيدي إلى زملائها أحمد وكاثي في باحة المدرسة المليئة بالألعاب والأشجار.",
+  "1-6": "خريطة القارة الإفريقية توضح موقع السودان ونهر النيل الخالد لتعليم التلاميذ أسماء الدول والجنسيات.",
+  "1-7": "تلاميذ في الصف الثالث يتبادلون التحيات الصباحية بالإنجليزية: 'I am fine, thank you' بوجوه مشرقة ومطمئنة.",
+  "1-8": "أنشودة الحروف الصوتية الأولى a و b و c مع بطاقات مصورة للتفاحة والسرير والقطة بطريقة موسيقية ممتعة.",
+  "2-1": "لوحة نانو بنana مائية ساحرة لتماسيح صغيرة مبتسمة تسبح في نهر النيل مرقمة من 1 إلى 6 عند الغروب مع مركب شراعي ونخيل.",
+  "2-2": "كعكة عيد ميلاد ملونة مع شموع مرقمة يتعلم معها التلاميذ الإجابة عن أعمارهم: 'I am eight years old'.",
+  "2-3": "ضفادع خضراء لطيفة تقفز حول بركة مياه صافية بين أوراق الزنبق ليتعلم الأطفال عد الكائنات الحية.",
+  "2-4": "قطط أليفة ومرحة تجلس في حديقة المنزل يتعلم التلاميذ عدها من واحد إلى عشرة بلطف ومودة.",
+  "2-5": "السوق الشعبي بمدينة أم درمان والمتاجر التراثية حيث يبحث الصغير علي عن أمه بمساعدة شرطي المرور الطيب.",
+  "2-6": "مشهد مؤثر وسعيد لعودة الصبي علي لأمه بجوار سوق الدجاج والطيور وابتسامة الراحة والاطمئنان.",
+  "2-7": "ساعة حائط كلاسيكية بعقارب واضحة يتعلم منها الطلاب قراءة الوقت بالساعات التامة: 3 o'clock و 7 o'clock.",
+  "2-8": "بطاقات الحروف الهجائية الصوتية من m إلى z مع رسومات لرجل وقلم وشمس وشارع لتثبيت الأصوات الإنجليزية.",
+  "3-1": "لوحة ألوان زاهية وفرشاة رسم ملونة لتعليم الأطفال الإشارة إلى الأحمر والأصفر والأزرق والأخضر.",
+  "3-2": "لعبة بطاقات البينغو التفاعلية مع دوائر ملونة يتنافس فيها تلاميذ الصف الثالث في مطابقة الألوان بسرعة.",
+  "3-3": "إشارة المرور ثلاثية الألوان (أحمر للتوقف، أصفر للاستعداد، أخضر للانطلاق) في شارع النيل بالخرطوم.",
+  "3-4": "أقلام تلوين شمعية ومائية متنوعة يتعلم بها الطلاب تسمية درجات الألوان البنية والبرتقالية والبيضاء.",
+  "3-5": "لوحة نانو بنانا وطنية لتلاميذ سودانيين يرفعون علم السودان بألوانه الأربعة في طابور الصباح المدرسي بفخر وسعادة.",
+  "3-6": "رسومات الأطفال الفنية المعلقة على لوحة الفصل والتي رسمتها كاثي وزملائها لبيوتهم وألعابهم.",
+  "3-7": "أوصاف ملامح الوجه وألوان العيون البنية والشعر الأسود لتدريب التلاميذ على التعبير الدقيق عن المظهر.",
+  "3-8": "اجتماع العائلة والأصدقاء في بهجة بعد العثور على الصبي علي مع تقديم الشكر لمن ساعد في البحث عنه.",
+  "4-1": "سلة فاكهة طازجة تحتوي على ليمون أصفر وبطيخ وشمام سوداني لذيذ لتعليم جمل الملكية: 'I have got a lemon'.",
+  "4-2": "صورة فوتوغرافية لطفل سوداني وسيم يرتدي قميصاً أنيقاً يتعرف التلاميذ على اسمه وعمره وفصله الدراسي.",
+  "4-3": "رسم توضيحي تعليمي لأجزاء الجسم: الرأس، الذراع، اليد، الساق، والقدم مع أنشودة الحركة والنشاط.",
+  "4-4": "بطاقات الهوية المدرسية للتلاميذ (هبة، رامي، داليا) توضح العمر والجنسية والفصل بطريقة منظمة.",
+  "4-5": "مقارنة مميزات الحيوانات: خرطوم الفيل الطويل، رقبة الزرافة الشامخة، وذيل القرد اللعوب.",
+  "4-6": "لوحة نانو بنانا رائعة للقنفذ اللطيف قنفود يجلس تحت نخلة بلح يأكل التمر الحلو ويلوح للطيور المغردة.",
+  "4-7": "ألبوم صور تذكارية لمعالم السودان الجميلة: الأهرامات التاريخية، شلالات السبلوقة، ومزارع القصب الخضراء.",
+  "4-8": "كراسة تدريبات مدرسية تحتوي على أسماء تبدأ بحرف A و B مثل: آدم، أحمد، علي، وبدر.",
+  "5-1": "فصل دراسي مشرق ومجهز بسبورة ومقاعد ونافذة تطل على حديقة المدرسة للإشارة إلى عناصر الغرفة الصفية.",
+  "5-2": "حقيبة مدرسية مفتوحة يخرج منها كتاب التلميذ، المسطرة، الممحاة، والمقلمة بالألوان الزاهية.",
+  "5-3": "تلاميذ المدرسة في الصف يرفعون أقلامهم الرصاص الملونة بجوار كتب اللغة الإنجليزية في نشاط تفاعلي.",
+  "5-4": "لوحة نانو بنانا تعليمية لحروف الجر: قرد صغير فوق الكرسي، قطة بيضاء نائمة تحت الطاولة، وحقيبة بجانب المقعد.",
+  "5-5": "لعبة دمية دب قطيفة وسيارة سباق صغيرة يبحث عنها الأطفال داخل خزانة الألعاب المدرسية.",
+  "5-6": "القطة سكر ذات الذيل الطويل والأذنين البيضاوين تلعب في فناء المدرسة وتثير بهجة التلاميذ.",
+  "5-7": "أدوات القياس المدرسية: مسطرة طويلة صفراء وقلم رصاص حاد على دفتر تخطيط مربعات أنيق.",
+  "5-8": "التلميذ حسن من مدينة الفاشر يلقي كلمة تعريفية مهذبة أمام زملائه بالفصل لتبادل الصداقة والترحيب.",
+  "6-1": "مطبخ المنزل العائلي الأنيق مع إبريق الشاي والأطباق النظيفة لتعليم غرف وأركان البيت.",
+  "6-2": "شوارع المدينة الهادئة مع المستشفى، مكاتب البريد، والمحلات التجارية لتعليم أماكن الحي والبلدة.",
+  "6-3": "مساكن الحيوانات والطيور: العش في الشجرة، والخلية للنحل، والمنزل الدافئ للعائلة.",
+  "6-4": "شاطئ البحر الأحمر بمدينة بورتسودان مع صدفة بحرية لامعة وبئر ماء عذب وصوت الحرف Sh.",
+  "6-5": "لوحة نانو بنانا لشجرة نيم وارفة الظلال في قرية سودانية يعيش فيها قرد وفأر وطيور ويزرع الأطفال شتلات جديدة.",
+  "6-6": "أيدي أطفال تعتني بتربة الحديقة وتغرس بذور الأزهار وتسقيها بالماء لتنبت براعم خضراء يانعة.",
+  "6-7": "شقة سكنية عصرية مريحة في عمارة بالخرطوم مع شرفة تطل على أشجار النخيل والحديقة.",
+  "6-8": "صالة الجلوس الدافئة بالمنزل العائلي مع ستائر جميلة وسجادة تراثية تؤكد أن مسكن العائلة هو الأفضل.",
+  "7-1": "تلميذة مبتسمة تقف في حديقة المنزل وترحب بأصدقائها لتعريفهم على عائلتها المترابطة.",
+  "7-2": "لوحة نانو بنانا بديعة لشجرة عائلة داليا مع صور مؤطرة للجد الحكيم والجدة والوالدين وبدر وداليا مع أطباق القش التراثية.",
+  "7-3": "أخوة صغار يلعبون معاً في فناء المنزل لتعليم صيغة السؤال عن الأخوة والأخوات بالإنجليزية.",
+  "7-4": "رامي وأخواته يقرؤون قصة مصورة تحت شجرة الليمون في جلسة أسرية مفعمة بالمحبة.",
+  "7-5": "أطفال يقفون بجوار بعضهم بترتيب أنيق لالتقاط صورة عائلية وتطبيق حروف الجر: next to و between.",
+  "7-6": "كتكوت أصفر صغير في مزرعة القرية يلتقي بالبقرة والحمار والخروف في قصة مسلية عن المواعيد والأوقات.",
+  "7-7": "الجدول اليومي للصبي عادل: الاستيقاظ مبكراً، صلاة الصبح، الذهاب للمدرسة، وحل الواجبات المدرسية.",
+  "7-8": "مراجعة شاملة لأسماء أفراد الأسرة في الغرف المختلفة (غرفة المعيشة، المطبخ، والحديقة).",
+  "8-1": "صندوق ألعاب ممتلئ بالكرات الملونة والطائرات الورقية والدمى لتشجيع التلاميذ على السؤال عما يرونه.",
+  "8-2": "لعبة أوامر المعلم في الفصل: 'Stand up', 'Sit down', 'Clap your hands' وسط حماس ونشاط التلاميذ.",
+  "8-3": "أطفال يقفزون ويركضون في الملعب الرياضي للتعبير عن مهاراتهم: 'I can jump, I can run'.",
+  "8-4": "عمليات جمع بسيطة وممتعة بالإنجليزية على السبورة: 5 + 3 = 8 باستخدام حبات الفول والأقلام.",
+  "8-5": "عصفوران مغردان جميلان (بلبل وبيلي) يقفان على غصن شجرة مزهرة ويغنيان أعذب الألحان.",
+  "8-6": "قلاع رملية بديعة يصنعها الأطفال على شاطئ البحر باستخدام المجرفة والدلو الملون.",
+  "8-7": "سيارة لعبة صغيرة تسير عجلاتها بنعومة مع أنشودة: 'The wheels on the car go round and round'.",
+  "8-8": "بطاقات حركية تفاعلية للأفعال الإنجليزية: المشي، الركض، السباحة، والطيران للمراجعة والتثبيت.",
+  "9-1": "مزرعة سودانية جميلة بها أبقار وخراف ودجاج يقتات على العشب الأخضر مع نشيد حيوانات المزرعة.",
+  "9-2": "كائنات نهر النيل: فرس النهر يسبح برأسه فوق الماء، وأسماك النيل الفضية، والطيور المائية المهاجرة.",
+  "9-3": "خريطة بيئات السودان الجغرافية: الصحراء الشمالية، السافانا الغنية، وجبال البحر الأحمر ومواطن الحيوانات.",
+  "9-4": "قدرات الحيوانات المدهشة: الفهد الصياد سريع الجري، والنسر المحلق في الفضاء، والأسد المهيب.",
+  "9-5": "جدول تصنيفي تفاعلي يحدد ما يستطيع الحيوان فعله: Walk, Swim, Fly, Jump.",
+  "9-6": "جمال الصحراء الأصيلة تسير في قوافل فوق الرمال الذهبية وتتحمل العطش بحكمة وصبر.",
+  "9-7": "لوحة نانو بنانا معبرة للجمل وحيد يبتسم على الكثبان الذهبية مع شجرة سنط وعصفورين يغردان وأهرامات البجراوية بالخلف.",
+  "9-8": "محمية الدندر الطبيعية بالسودان حيث ترعى الغزلان والزرافات بسلام بين المراعي الخضراء.",
+  "10-1": "مائدة طعام صحية ممتلئة بالخضروات الطازجة والفواكه والحليب لبناء عضلات وعظام قوية.",
+  "10-2": "ثلاجة المنزل وأرفف المؤونة مرتبة بعناية: البيض والجبن بالداخل والخبز والأرز على الرف.",
+  "10-3": "سلتان ملونتان لتصنيف الأطعمة: سلة الفواكه (الموز والبرتقال) وسلة الخضروات (الجزر والطماطم والخيار).",
+  "10-4": "لوحة نانو بنانا تعليمية مصورة لخطوات إعداد عصير المانجو السوداني الطازج خطوة بخطوة بالخلاط مع الطفلة داليا.",
+  "10-5": "الحواس الخمس في تذوق الأطعمة: البصر للجمال، الشم للروائح الشهية، والتذوق للنكهات اللذيذة.",
+  "10-6": "درس علوم مبسط يوضح احتواء الفواكه على بذور ونموها من أزهار الأشجار مقارنة بالخضروات الورقية.",
+  "10-7": "مائدة الإفطار السوداني التقليدي اللذيذ: صحن الفول المصلح بزيت السمسم، الطعمية المقرمشة، وشاي اللبن المقنن.",
+  "10-8": "مراجعة شاملة لجميع الأطعمة والمشروبات بالإنجليزية مع عبارات الطلب المهذب: 'I would like tea, please'.",
+  "11-1": "متحف السودان القومي على شارع النيل بالخرطوم مع تماثيل وحضارة كرمة ومروي القديمة.",
+  "11-2": "الأماكن المجتمعية بالمدينة: المكتبة العامة للقراءة، والحديقة للعب، والمسجد للصلاة.",
+  "11-3": "منتزه عائلي مخضر وجميل تلعب فيه العائلات والأطفال على الأراجيح والعشب النظيف.",
+  "11-4": "أطفال يضعون العلب والأوراق الفارغة في سلة المهملات للحفاظ على نظافة المنتزه وجمال الطبيعة.",
+  "11-5": "حملة النظافة المدرسية: طلاب الصف الثالث يتعاونون في ترتيب مقاعد الفصل ومسح السبورة وجمع الأوراق.",
+  "11-6": "رعاية البيئة وحمايتها: غرس الأشجار وتوفير مياه الشرب للطيور وعدم قطف الأزهار البرية.",
+  "11-7": "قصة الشجرتين: شجرة حزينة جافة وشجرة خضراء سعيدة تظلل المارة وطيور النيل بفيئها.",
+  "11-8": "أنشودة الطبيعة: 'Ali, Ali, what can you see?' مع إطلالة خلابة على الطبيعة النيلية الساحرة.",
+  "12-1": "لوحة نانو بنانا احتفالية لملابس العيد الجديدة الزاهية معلقة على حبل الغسيل بفناء المنزل مع بهجة الأطفال بالعيد.",
+  "12-2": "السؤال عن ملكية ملابس العيد: 'Whose dress is this? It is Dalia's dress' بأجواء احتفالية راقية.",
+  "12-3": "ثوب الجدة السوداني الفاخر المطرز بألوان زاهية وتهنئة الأحفاد لها بحلول عيد الفطر السعيد.",
+  "12-4": "رحلة العيد السعيدة مع الأسرة إلى حديقة الحيوان ومشاهدة القرود والزرافات والطيور الملونة.",
+  "12-5": "زيارة بيت الجدة في صبيحة العيد وتبادل المصافحة والحلويات السودانية في جو من البر والمحبة.",
+  "12-6": "لوحة نانو بنانا تراثية دافئة للحبوبة وحفيدتها تنخلان السكر الناعم فوق صينية كعك العيد الدائري في مطبخ سوداني أصيل.",
+  "12-7": "برنامج صباح العيد: صلاة العيد في الساحة، ارتداء الملابس الجديدة، وتناول الفطور مع الأهل والأقارب.",
+  "12-8": "آداب العيد الإسلامية والاجتماعية: تبادل التهاني 'Happy Eid', إفشاء السلام، والتراحم والعطف على المحتاجين.",
 };
 
 /**
@@ -254,11 +208,11 @@ const LESSON_SUDANESE_CARTOON_DESC: Record<string, string> = {
  */
 export function getLessonImageUrl(unitId: number, lessonId: number): string {
   const key = `${unitId}-${lessonId}`;
-  return LESSON_IMAGE_MAP[key] || "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=800&q=80";
+  return LESSON_IMAGE_MAP[key] || "/illustrations/lessons/u1_l1.jpg";
 }
 
 /**
- * Returns a beautiful Arabic description detailing how this cartoon illustration 
+ * Returns a beautiful Arabic description detailing how this cartoon illustration
  * reflects Sudanese real life, geography, culture, or student environment.
  */
 export function getLessonCartoonDesc(unitId: number, lessonId: number): string {
