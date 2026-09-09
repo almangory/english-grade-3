@@ -35,7 +35,9 @@ import {
   ChevronUp,
   Settings,
   Smartphone,
-  PenTool
+  PenTool,
+  Wifi,
+  WifiOff
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { SMILE_UNITS } from "./smileData";
@@ -217,8 +219,22 @@ export default function App() {
   const [bookSection, setBookSection] = useState<"lessons" | "activities" | "flipbook" | "listening">("lessons");
   const [selectedActivityIndex, setSelectedActivityIndex] = useState<number>(0);
   const [vocabMode, setVocabMode] = useState<"dictionary" | "flashcards">("dictionary");
+  const [quizSubMode, setQuizSubMode] = useState<"quiz" | "playroom" | "dictation">("quiz");
   const [showUnitsList, setShowUnitsList] = useState(false);
   const [showSoundSettings, setShowSoundSettings] = useState(false);
+  const [isOnline, setIsOnline] = useState(typeof navigator !== "undefined" ? navigator.onLine : true);
+
+  // Online / Offline listener
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   // 🇸🇩 Naqla Unified Platform SSO User State
   const [ssoUser] = useState<{ username?: string; name?: string } | null>(() => {
@@ -627,6 +643,13 @@ export default function App() {
   const [quizFinished, setQuizScoreFinished] = useState(false);
   const [points, setPoints] = useState(10);
   const [badges, setBadges] = useState<string[]>(["⭐️ First Explorer"]);
+
+  const addPoints = (amount: number) => {
+    setPoints((prev) => prev + amount);
+  };
+  const addBadge = (badgeName: string) => {
+    setBadges((prev) => (prev.includes(badgeName) ? prev : [...prev, badgeName]));
+  };
 
   // Custom configurable exam state
   const [quizScope, setQuizScope] = useState<"all" | "unit" | "lesson">("unit");
@@ -1120,6 +1143,24 @@ export default function App() {
     }, 60);
   };
 
+  const stopReading = () => {
+    speechRequestIdRef.current++;
+    if (speechTimeoutRef.current) {
+      clearTimeout(speechTimeoutRef.current);
+      speechTimeoutRef.current = null;
+    }
+    if (audioPlayerRef.current) {
+      audioPlayerRef.current.pause();
+      audioPlayerRef.current.src = "";
+    }
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    setAudioPlaybackActive(false);
+    setSpeakingText(null);
+    setSpokenWordIndex(null);
+  };
+
   // Helper to render interactive text where clicking a word pronounces it
   const renderInteractiveText = (text: string, voiceName: string = "Kore", startWordOffset: number = 0) => {
     // Split by whitespace while preserving it, keeping track of indices
@@ -1200,81 +1241,116 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-sky-50/50 flex flex-col font-sans select-none antialiased">
-      {/* 🇸🇩 شريط السيو والروابط العكسية لقوقل - منصة نقلة الموحدة */}
-      <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-emerald-800 text-white py-2 px-4 text-xs font-sans flex items-center justify-between border-b border-emerald-700/50 shadow-sm no-print z-50" dir="rtl">
-        <div className="flex items-center gap-2.5 font-bold">
+    <div className="min-h-screen bg-sky-50/50 flex flex-col font-sans select-none antialiased p-3 sm:p-6 pb-24 md:pb-6">
+      {/* 🇸🇩 شريط الربط بمنظومة المناهج السودانية التفاعلية وموقع نقلة الرئيسي (SEO Backlink Bar) */}
+      <div className="w-full bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-900 text-white px-3 sm:px-6 py-2 text-xs font-sans flex items-center justify-between shadow-md border-b border-emerald-500/20 -mt-3 -mx-3 sm:-mt-6 sm:-mx-6 mb-5 no-print">
+        <div className="flex items-center gap-2 font-bold">
           <span className="text-base">🇸🇩</span>
-          <span className="tracking-wide">ضمن منظومة المناهج السودانية التفاعلية | منصة نقلة</span>
+          <span className="hidden sm:inline font-black tracking-wide text-emerald-100">ضمن منظومة المناهج السودانية التفاعلية | منصة نقلة</span>
+          <span className="sm:hidden font-extrabold text-emerald-100">منظومة المناهج السودانية</span>
+        </div>
+        <div className="flex items-center gap-2.5">
           {ssoUser && (
-            <span className="bg-emerald-700/80 text-emerald-100 text-[11px] font-black px-2.5 py-0.5 rounded-full border border-emerald-500/30">
-              👤 مرحباً {ssoUser.name || ssoUser.username}
+            <span className="text-emerald-200 text-[11px] font-bold bg-emerald-800/90 px-2.5 py-0.5 rounded-full border border-emerald-500/40 flex items-center gap-1 shadow-sm">
+              <span>👤</span>
+              <span>{ssoUser.username || ssoUser.name || "الطالب"}</span>
             </span>
           )}
+          <a
+            href="https://sudan-interactive-curricula.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-emerald-200 hover:text-white font-black text-[11px] flex items-center gap-1.5 transition-all bg-emerald-800/80 hover:bg-emerald-700 px-3 py-1 rounded-xl border border-emerald-500/40 shadow-sm"
+          >
+            <span>العودة للمنصة الرئيسية</span>
+            <span className="text-xs">↗</span>
+          </a>
         </div>
-        <a
-          href="https://sudan-interactive-curricula.vercel.app/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-emerald-200 hover:text-white font-extrabold text-xs flex items-center gap-1.5 transition-colors bg-white/10 hover:bg-white/20 px-3 py-1 rounded-xl"
-        >
-          <span>العودة للمنصة الرئيسية</span>
-          <span>↗</span>
-        </a>
       </div>
 
-      <div className="flex-grow flex flex-col p-3 sm:p-6">
-        {/* Top Header section in Bento grid style */}
-        <header className="max-w-6xl w-full mx-auto mb-6 flex flex-col md:flex-row justify-between items-center gap-4 relative z-10">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-yellow-400 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-3xl animate-spin-slow">☀️</div>
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-black text-sky-800 tracking-tight leading-none uppercase">SMILE English</h1>
-            <p className="text-sky-600 font-bold text-sm sm:text-lg">Grade 3 Primary • Grade 3 SMILE 1 Companion</p>
+      {/* Top Header section with App Icon badge and PWA Install */}
+      <header className="max-w-6xl w-full mx-auto mb-6 flex flex-col md:flex-row justify-between items-center gap-4 relative z-10">
+        <div className="flex items-center gap-3.5 w-full md:w-auto justify-between md:justify-start">
+          <div className="flex items-center gap-3.5">
+            <div className="relative">
+              <img
+                src="/favicon.png"
+                alt="NAQLA English App"
+                className="w-14 h-14 sm:w-16 sm:h-16 rounded-[20px] shadow-md border-2 border-white object-cover bg-white"
+                onError={(e) => {
+                  e.currentTarget.src = "/icon.svg";
+                }}
+              />
+              <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${isOnline ? "bg-emerald-500" : "bg-amber-500"}`} title={isOnline ? "متصل بالإنترنت" : "يعمل أوفلاين بدون إنترنت"} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl sm:text-3xl font-black text-sky-950 tracking-tight leading-none uppercase">NAQLA English</h1>
+                <span className="text-[10px] font-black uppercase tracking-wider bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full border border-sky-200">Book 3</span>
+              </div>
+              <p className="text-sky-700 font-bold text-xs sm:text-sm mt-1">SMILE Grade 3 • Sudanese Curriculum</p>
+            </div>
+          </div>
+
+          {/* Quick Offline Status Badge (Mobile visible) */}
+          <div className="flex md:hidden items-center gap-1.5 bg-emerald-50 text-emerald-800 text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-emerald-200">
+            {isOnline ? <Wifi className="w-3 h-3 text-emerald-600" /> : <WifiOff className="w-3 h-3 text-amber-600" />}
+            <span>{isOnline ? "جاهز أوفلاين" : "بدون إنترنت"}</span>
           </div>
         </div>
 
-        <div className="flex gap-3 items-center">
-          {/* APK/PWA Mobile Installation Icon */}
-          <button
-            id="trigger-app-install-btn"
+        <div className="flex flex-wrap gap-2.5 items-center w-full md:w-auto justify-end">
+          {/* Desktop Offline Status Indicator */}
+          <div className="hidden md:flex items-center gap-1.5 bg-white px-3.5 py-2.5 rounded-[20px] shadow-sm border border-slate-200 text-slate-700 text-xs font-black">
+            {isOnline ? (
+              <>
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-emerald-800">يعمل بدون إنترنت 100%</span>
+              </>
+            ) : (
+              <>
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                <span className="text-amber-800">وضع عدم الاتصال (Offline)</span>
+              </>
+            )}
+          </div>
+
+          {/* PWA Install Button */}
+          <motion.button
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setShowInstallDetails(true)}
-            className="flex items-center gap-2 bg-gradient-to-r from-sky-600 to-indigo-600 text-white px-5 py-3 rounded-[24px] shadow-md border-b-4 border-indigo-900 font-extrabold hover:from-sky-700 hover:to-indigo-700 active:scale-95 transition-all cursor-pointer relative animate-pulse"
-            title="Install App on Phone"
+            className="flex items-center gap-1.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-[20px] shadow-md text-xs font-black uppercase tracking-wider cursor-pointer transition-all active:scale-95"
+            title="تثبيت التطبيق على جهازك"
           >
-            <Smartphone className="w-5 h-5 text-yellow-300 animate-bounce" />
-            <span className="hidden sm:inline text-sm font-black">Install App 📲</span>
-            {/* Glowing Dot Badge */}
-            <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-yellow-500"></span>
-            </span>
-          </button>
+            <Smartphone className="w-4 h-4 text-sky-200 animate-bounce" />
+            <span>تثبيت التطبيق 📲</span>
+          </motion.button>
 
           {/* Fullscreen Button */}
           <button
             onClick={toggleFullscreen}
-            className="flex items-center gap-2 bg-white px-5 py-3 rounded-[24px] shadow-sm border-b-4 border-gray-200 text-sky-800 font-extrabold hover:bg-sky-50 active:scale-95 transition-all cursor-pointer"
-            title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+            className="flex items-center gap-1.5 bg-white px-3.5 py-2.5 rounded-[20px] shadow-sm border-b-2 border-gray-200 text-sky-800 font-extrabold hover:bg-sky-50 active:scale-95 transition-all cursor-pointer text-xs"
+            title={isFullscreen ? "الخروج من الشاشة الكاملة" : "شاشة كاملة"}
           >
             {isFullscreen ? (
               <>
-                <Minimize2 className="w-5 h-5 text-sky-600 animate-pulse" />
-                <span className="hidden sm:inline text-sm">Exit Fullscreen</span>
+                <Minimize2 className="w-4 h-4 text-sky-600" />
+                <span className="hidden sm:inline">تصغير</span>
               </>
             ) : (
               <>
-                <Maximize2 className="w-5 h-5 text-sky-600" />
-                <span className="hidden sm:inline text-sm">Fullscreen</span>
+                <Maximize2 className="w-4 h-4 text-sky-600" />
+                <span className="hidden sm:inline">شاشة كاملة</span>
               </>
             )}
           </button>
 
-          <div className="bg-white px-6 py-3 rounded-[24px] shadow-sm border-b-4 border-gray-200 flex items-center gap-2">
-            <span className="text-2xl">⭐️</span>
-            <span className="text-lg sm:text-xl font-black text-amber-500">{points} Points</span>
+          {/* Points Counter */}
+          <div className="bg-white px-4 py-2 rounded-[20px] shadow-sm border-b-2 border-gray-200 flex items-center gap-1.5">
+            <span className="text-lg">⭐️</span>
+            <span className="text-sm font-black text-amber-500">{points} pts</span>
           </div>
-          <div className="w-14 h-14 bg-purple-500 rounded-2xl border-b-4 border-purple-700 flex items-center justify-center text-2xl text-white font-bold cursor-pointer hover:scale-105 transition-transform" onClick={() => setPoints(prev => prev + 5)}>👦</div>
         </div>
       </header>
 
@@ -1284,211 +1360,150 @@ export default function App() {
       {/* Main Container Grid */}
       <div className="max-w-6xl w-full mx-auto flex-grow grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Navigation Rail / Menus bar - placed on the RIGHT on desktop for English layout */}
-        <aside className="lg:col-span-3 flex flex-col gap-5 order-1 lg:order-2">
+        {/* Navigation Rail / Left bar - list of book units as beautiful compact Bento tiles */}
+        <aside className="lg:col-span-3 flex flex-col gap-5">
           <div className="bg-white rounded-[32px] p-5 shadow-sm border-b-8 border-r-8 border-sky-100 flex flex-col gap-4">
-            <button
-              onClick={() => setShowUnitsList(!showUnitsList)}
-              className="w-full text-left flex items-center justify-between border-b border-slate-100 pb-2 cursor-pointer group select-none"
-              id="units-list-toggle"
-            >
-              <h2 className="text-xs font-black text-sky-800 uppercase tracking-widest flex items-center gap-1.5 min-w-0">
-                <BookOpen className="w-4 h-4 text-sky-500 shrink-0" />
-                <span className="truncate">SMILE Units • Chapters</span>
-              </h2>
-              <div className="flex items-center gap-1.5 shrink-0 whitespace-nowrap ml-2">
-                {!showUnitsList && (
-                  <span className="text-[10px] font-black text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full uppercase tracking-wider animate-pulse whitespace-nowrap">
-                    Tap to view
-                  </span>
-                )}
-                {showUnitsList ? (
-                  <ChevronUp className="w-4 h-4 text-sky-500 transition-transform group-hover:scale-110 shrink-0" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-sky-500 transition-transform group-hover:scale-110 shrink-0" />
-                )}
-              </div>
-            </button>
+            <h2 className="text-xs font-black text-sky-800 uppercase tracking-widest flex items-center gap-1.5 border-b border-slate-100 pb-2">
+              <BookOpen className="w-4 h-4 text-sky-500" />
+              SMILE Units • Student Book Chapters
+            </h2>
             
-            <AnimatePresence initial={false}>
-              {showUnitsList && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.25, ease: "easeInOut" }}
-                  className="flex flex-col gap-3 max-h-[340px] lg:max-h-[none] overflow-y-auto pr-1 overflow-hidden"
-                >
-                  {SMILE_UNITS.map((u) => {
-                    const isSelected = selectedUnit.id === u.id;
-                    return (
-                      <motion.button
-                        key={u.id}
-                        onClick={() => {
-                          handleUnitSelect(u);
-                          setShowUnitsList(false);
-                        }}
-                        whileHover={{ scale: 1.03, y: -2 }}
-                        whileTap={{ scale: 0.97 }}
-                        className={`w-full text-left p-3.5 rounded-[24px] border-b-4 transition-all flex items-start gap-3 relative cursor-pointer ${
-                          isSelected 
-                            ? `${u.color} shadow-md border-amber-600 font-bold text-amber-950` 
-                            : "bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-700"
-                        }`}
-                      >
-                        <span className="text-3xl pt-0.5">{u.icon}</span>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-[10px] uppercase tracking-wider font-extrabold opacity-75">Unit {u.id}</div>
-                          <div className="text-[13px] truncate leading-tight font-black uppercase text-sky-950">{u.title}</div>
-                        </div>
-                      </motion.button>
-                    );
-                  })}
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <div className="flex flex-col gap-3 max-h-[340px] lg:max-h-[none] overflow-y-auto pr-1">
+              {SMILE_UNITS.map((u) => {
+                const isSelected = selectedUnit.id === u.id;
+                return (
+                  <motion.button
+                    key={u.id}
+                    onClick={() => handleUnitSelect(u)}
+                    whileHover={{ scale: 1.03, y: -2 }}
+                    whileTap={{ scale: 0.97 }}
+                    className={`w-full text-left p-3.5 rounded-[24px] border-b-4 transition-all flex items-start gap-3 relative cursor-pointer ${
+                      isSelected 
+                        ? `${u.color} shadow-md border-amber-600 font-bold text-amber-950` 
+                        : "bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-700"
+                    }`}
+                  >
+                    <span className="text-3xl pt-0.5">{u.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[10px] uppercase tracking-wider font-extrabold opacity-75">Unit {u.id}</div>
+                      <div className="text-[13px] truncate leading-tight font-black uppercase text-sky-950">{u.title}</div>
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Sound & Pronunciation Settings Widget */}
           <div className="bg-white rounded-[32px] p-5 shadow-sm border-b-8 border-r-8 border-indigo-100 flex flex-col gap-3">
-            <button
-              onClick={() => setShowSoundSettings(!showSoundSettings)}
-              className="w-full text-left flex items-center justify-between border-b border-slate-100 pb-2 cursor-pointer group select-none"
-              id="sound-settings-toggle"
-            >
-              <h3 className="text-xs font-black text-indigo-900 uppercase tracking-widest flex items-center gap-1.5 min-w-0">
-                <Settings className={`w-4 h-4 text-indigo-500 shrink-0 transition-transform duration-500 ${showSoundSettings ? "rotate-90" : ""}`} />
-                <span className="truncate">Sound Settings</span>
-              </h3>
-              <div className="flex items-center gap-1.5 shrink-0 whitespace-nowrap ml-2">
-                {!showSoundSettings && (
-                  <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full uppercase tracking-wider animate-pulse whitespace-nowrap">
-                    Tap to open
-                  </span>
-                )}
-                {showSoundSettings ? (
-                  <ChevronUp className="w-4 h-4 text-indigo-500 transition-transform group-hover:scale-110 shrink-0" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-indigo-500 transition-transform group-hover:scale-110 shrink-0" />
-                )}
-              </div>
-            </button>
+            <h3 className="text-xs font-black text-indigo-900 uppercase tracking-widest flex items-center gap-1.5 border-b border-slate-100 pb-2">
+              <Volume2 className="w-4 h-4 text-indigo-500" />
+              Sound Settings • Voice Engine
+            </h3>
             
-            <AnimatePresence initial={false}>
-              {showSoundSettings && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.25, ease: "easeInOut" }}
-                  className="flex flex-col gap-3 overflow-hidden"
-                >
-                  <p className="text-[11px] font-extrabold text-slate-500 leading-snug">
-                    The read-aloud voice system is fully integrated! If you experience any playback issues, you can switch between the sound modes below and test using the button:
-                  </p>
+            <p className="text-[11px] font-extrabold text-slate-500 leading-snug">
+              The read-aloud voice system is fully integrated! If you experience any playback issues, you can switch between the sound modes below and test using the button:
+            </p>
 
-                  <div className="flex flex-col gap-2 mt-1">
-                    <button
-                      onClick={() => setVoiceMode("gemini")}
-                      className={`w-full text-left p-3 rounded-[16px] border-b-4 transition-all flex items-center justify-between cursor-pointer ${
-                        voiceMode === "gemini"
-                          ? "bg-indigo-600 border-indigo-800 text-white font-black"
-                          : "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700 font-bold"
-                      }`}
-                    >
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-md">✨</span>
-                        <div className="flex flex-col">
-                          <span className="text-[12px] leading-tight">Embedded Voice (Free & Fast)</span>
-                          <span className="text-[10px] opacity-80 leading-tight">High Quality AI Voice (Recommended)</span>
-                        </div>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => setVoiceMode("system")}
-                      className={`w-full text-left p-3 rounded-[16px] border-b-4 transition-all flex items-center justify-between cursor-pointer ${
-                        voiceMode === "system"
-                          ? "bg-indigo-600 border-indigo-800 text-white font-black"
-                          : "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700 font-bold"
-                      }`}
-                    >
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-md">⚡</span>
-                        <div className="flex flex-col">
-                          <span className="text-[12px] leading-tight">Device System Voice</span>
-                          <span className="text-[10px] opacity-80 leading-tight">Standard Browser Voice (Offline Fallback)</span>
-                        </div>
-                      </div>
-                    </button>
+            <div className="flex flex-col gap-2 mt-1">
+              <button
+                onClick={() => setVoiceMode("gemini")}
+                className={`w-full text-left p-3 rounded-[16px] border-b-4 transition-all flex items-center justify-between cursor-pointer ${
+                  voiceMode === "gemini"
+                    ? "bg-indigo-600 border-indigo-800 text-white font-black"
+                    : "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700 font-bold"
+                }`}
+              >
+                <div className="flex items-center gap-1.5">
+                  <span className="text-md">✨</span>
+                  <div className="flex flex-col">
+                    <span className="text-[12px] leading-tight">Embedded Voice (Free & Fast)</span>
+                    <span className="text-[10px] opacity-80 leading-tight">High Quality AI Voice (Recommended)</span>
                   </div>
+                </div>
+              </button>
 
-                  {/* Reading Speed Controller */}
-                  <div className="bg-slate-50 p-4 rounded-[20px] border border-slate-100 flex flex-col gap-2.5 mt-1">
-                    <div className="flex justify-between items-center text-slate-800">
-                      <span className="text-[11px] font-black uppercase tracking-wider flex items-center gap-1 text-indigo-950">
-                        ⏱️ Reading Speed
-                      </span>
-                      <span className="text-xs font-black px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-lg">
-                        {readingSpeed}x
-                      </span>
-                    </div>
-
-                    {/* Preset Segmented Buttons */}
-                    <div className="grid grid-cols-5 gap-1 bg-white p-1 rounded-xl border border-slate-100">
-                      {[
-                        { label: "Slow", value: 0.6 },
-                        { label: "Calm", value: 0.75 },
-                        { label: "Relaxed", value: 0.85 },
-                        { label: "Normal", value: 1.0 },
-                        { label: "Fast", value: 1.2 }
-                      ].map((preset) => (
-                        <button
-                          key={preset.value}
-                          onClick={() => setReadingSpeed(preset.value)}
-                          className={`py-1.5 px-0.5 rounded-lg text-[10px] font-black transition-all cursor-pointer text-center leading-none ${
-                            readingSpeed === preset.value
-                              ? "bg-indigo-600 text-white shadow-xs"
-                              : "text-slate-600 hover:bg-slate-100"
-                          }`}
-                        >
-                          <span className="block mb-0.5">{preset.value}x</span>
-                          <span className="text-[8px] opacity-90">{preset.label}</span>
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Fine-Tuning Slider */}
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] font-bold text-slate-400">0.5x</span>
-                      <input
-                        type="range"
-                        min="0.5"
-                        max="1.5"
-                        step="0.05"
-                        value={readingSpeed}
-                        onChange={(e) => setReadingSpeed(parseFloat(e.target.value))}
-                        className="flex-1 accent-indigo-600 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer"
-                      />
-                      <span className="text-[10px] font-bold text-slate-400">1.5x</span>
-                    </div>
+              <button
+                onClick={() => setVoiceMode("system")}
+                className={`w-full text-left p-3 rounded-[16px] border-b-4 transition-all flex items-center justify-between cursor-pointer ${
+                  voiceMode === "system"
+                    ? "bg-indigo-600 border-indigo-800 text-white font-black"
+                    : "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700 font-bold"
+                }`}
+              >
+                <div className="flex items-center gap-1.5">
+                  <span className="text-md">⚡</span>
+                  <div className="flex flex-col">
+                    <span className="text-[12px] leading-tight">Device System Voice</span>
+                    <span className="text-[10px] opacity-80 leading-tight">Standard Browser Voice (Offline Fallback)</span>
                   </div>
+                </div>
+              </button>
+            </div>
 
+            {/* Reading Speed Controller */}
+            <div className="bg-slate-50 p-4 rounded-[20px] border border-slate-100 flex flex-col gap-2.5 mt-1">
+              <div className="flex justify-between items-center text-slate-800">
+                <span className="text-[11px] font-black uppercase tracking-wider flex items-center gap-1 text-indigo-950">
+                  ⏱️ Reading Speed
+                </span>
+                <span className="text-xs font-black px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-lg">
+                  {readingSpeed}x
+                </span>
+              </div>
+
+              {/* Preset Segmented Buttons */}
+              <div className="grid grid-cols-5 gap-1 bg-white p-1 rounded-xl border border-slate-100">
+                {[
+                  { label: "Slow", value: 0.6 },
+                  { label: "Calm", value: 0.75 },
+                  { label: "Relaxed", value: 0.85 },
+                  { label: "Normal", value: 1.0 },
+                  { label: "Fast", value: 1.2 }
+                ].map((preset) => (
                   <button
-                    onClick={() => speakText("Welcome to SMILE English, Grade 3 primary student! As-salamu alaykum!", "Kore")}
-                    className="mt-1 w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs uppercase py-3 px-4 rounded-[16px] border-b-4 border-emerald-700 transition-all flex items-center justify-center gap-2 cursor-pointer transform active:translate-y-0.5"
+                    key={preset.value}
+                    onClick={() => setReadingSpeed(preset.value)}
+                    className={`py-1.5 px-0.5 rounded-lg text-[10px] font-black transition-all cursor-pointer text-center leading-none ${
+                      readingSpeed === preset.value
+                        ? "bg-indigo-600 text-white shadow-xs"
+                        : "text-slate-600 hover:bg-slate-100"
+                    }`}
                   >
-                    <Volume2 className="w-4 h-4" />
-                    <span>Test & Play Word Sounds</span>
+                    <span className="block mb-0.5">{preset.value}x</span>
+                    <span className="text-[8px] opacity-90">{preset.label}</span>
                   </button>
+                ))}
+              </div>
 
-                  {/* Offline pre-download & cache dashboard */}
-                  <div className="mt-2 border-t border-slate-100 pt-3">
-                    <OfflineManager currentUnit={selectedUnit} allUnits={SMILE_UNITS} />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+              {/* Fine-Tuning Slider */}
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-[10px] font-bold text-slate-400">0.5x</span>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="1.5"
+                  step="0.05"
+                  value={readingSpeed}
+                  onChange={(e) => setReadingSpeed(parseFloat(e.target.value))}
+                  className="flex-1 accent-indigo-600 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                />
+                <span className="text-[10px] font-bold text-slate-400">1.5x</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => speakText("Welcome to SMILE English, Grade 3 primary student! As-salamu alaykum!", "Kore")}
+              className="mt-1 w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs uppercase py-3 px-4 rounded-[16px] border-b-4 border-emerald-700 transition-all flex items-center justify-center gap-2 cursor-pointer transform active:translate-y-0.5"
+            >
+              <Volume2 className="w-4 h-4" />
+              <span>Test & Play Word Sounds</span>
+            </button>
+
+            {/* Offline pre-download & cache dashboard */}
+            <div className="mt-2 border-t border-slate-100 pt-3">
+              <OfflineManager currentUnit={selectedUnit} allUnits={SMILE_UNITS} />
+            </div>
           </div>
 
           {/* Award achievements section */}
@@ -1509,8 +1524,8 @@ export default function App() {
           </div>
         </aside>
 
-        {/* Central interactive screen workspace - placed on the LEFT on desktop */}
-        <main id="main-workspace" className="lg:col-span-9 flex flex-col gap-6 order-2 lg:order-1">
+        {/* Central interactive screen workspace */}
+        <main id="main-workspace" className="lg:col-span-9 flex flex-col gap-6">
           
           {/* Main Interactive Sub-tabs selection - Bento Style */}
           <div className="bg-white rounded-[32px] p-2 shadow-sm border-b-6 border-sky-100 flex flex-wrap gap-1.5 no-print">
@@ -1549,7 +1564,7 @@ export default function App() {
               whileTap={{ scale: 0.95 }}
               onClick={() => navigateToTab("quiz")}
               className={`flex-1 min-w-[110px] py-4 px-3 rounded-[24px] font-black text-xs uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
-                activeTab === "quiz"
+                activeTab === "quiz" || activeTab === "game" || activeTab === "dictation"
                   ? "bg-emerald-400 text-white border-b-4 border-emerald-600 shadow-md"
                   : "bg-transparent hover:bg-slate-100/85 text-emerald-950 font-bold"
               }`}
@@ -1557,36 +1572,6 @@ export default function App() {
               <Gamepad2 className="w-5 h-5 mb-0.5" />
               <span>Quiz Games</span>
               <span className="text-[10px] opacity-80 font-bold">Play and Score</span>
-            </motion.button>
-
-            <motion.button
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigateToTab("game")}
-              className={`flex-1 min-w-[110px] py-4 px-3 rounded-[24px] font-black text-xs uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
-                activeTab === "game"
-                  ? "bg-violet-500 text-white border-b-4 border-violet-700 shadow-md"
-                  : "bg-transparent hover:bg-slate-100/85 text-violet-950 font-bold"
-              }`}
-            >
-              <Sparkles className="w-5 h-5 mb-0.5" />
-              <span>Interactive Games</span>
-              <span className="text-[10px] opacity-80 font-bold">SMILE Playroom</span>
-            </motion.button>
-
-            <motion.button
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigateToTab("dictation")}
-              className={`flex-1 min-w-[110px] py-4 px-3 rounded-[24px] font-black text-xs uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
-                activeTab === "dictation"
-                  ? "bg-indigo-600 text-white border-b-4 border-indigo-800 shadow-md"
-                  : "bg-transparent hover:bg-slate-100/85 text-indigo-950 font-bold"
-              }`}
-            >
-              <PenTool className="w-5 h-5 mb-0.5" />
-              <span>Spelling Dictation</span>
-              <span className="text-[10px] opacity-80 font-bold">Interactive Spelling</span>
             </motion.button>
 
             <motion.button
@@ -1600,7 +1585,7 @@ export default function App() {
               }`}
             >
               <Smile className="w-5 h-5 mb-0.5" />
-              <span>AI Chat Partner</span>
+              <span>Dialogue Builder</span>
               <span className="text-[10px] opacity-80 font-bold">Speaking Area</span>
             </motion.button>
 
@@ -1722,175 +1707,194 @@ export default function App() {
                         </div>
                       </div>
 
-                      <div className="bg-white p-6 sm:p-8 rounded-[40px] border-b-8 border-r-8 border-indigo-100 flex flex-col gap-4 relative overflow-hidden">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-2 pb-2 border-b border-slate-100">
+                      <div className="bg-white p-4 sm:p-8 rounded-[32px] sm:rounded-[40px] border-b-8 border-r-8 border-indigo-100 flex flex-col gap-4 relative overflow-hidden">
+                        {/* 🎨 Dedicated, instant-loading illustration for EVERY single lesson */}
+                        <div className="w-full h-48 sm:h-72 rounded-[24px] sm:rounded-[28px] overflow-hidden border-2 border-indigo-100/90 bg-slate-50 relative group shadow-sm">
+                          <img
+                            key={`lesson-art-${selectedUnit.id}-${selectedLesson.id}`}
+                            src={getLessonImageUrl(selectedUnit.id, selectedLesson.id)}
+                            alt={selectedLesson.title}
+                            className="w-full h-full object-cover object-center transition-all duration-200"
+                            loading="eager"
+                            onError={(e) => {
+                              const target = e.currentTarget;
+                              const fallbackSrc = "/favicon.png";
+                              if (target.src !== fallbackSrc) {
+                                target.src = fallbackSrc;
+                              }
+                            }}
+                          />
+                          <div className="absolute bottom-2.5 right-3 bg-slate-950/85 backdrop-blur-sm text-white text-[10px] sm:text-[11px] font-black px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md border border-white/20">
+                            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                            <span>NAQLA Art • Unit {selectedUnit.id} Lesson {selectedLesson.id}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between mb-2">
                           <h4 className="text-lg font-black text-indigo-950 flex items-center gap-2 uppercase tracking-wide">
                             {selectedLesson.type === "song" && <Music className="w-5 h-5 text-indigo-500" />}
                             {selectedLesson.type === "conversation" && <Volume2 className="w-5 h-5 text-indigo-500" />}
                             {selectedLesson.type === "phonics" && <Sparkles className="w-5 h-5 text-indigo-500" />}
                             {selectedLesson.title}
                           </h4>
-                          <div className="flex items-center gap-3 flex-wrap">
-                            {/* Compact Speed Selector */}
-                            <div className="bg-indigo-50/60 border border-indigo-100 p-1.5 rounded-[16px] flex items-center gap-2 shadow-xs">
-                              <span className="text-[10px] font-black text-indigo-950 uppercase tracking-widest pl-1 flex items-center gap-1">
-                                ⏱️ Reading Speed:
-                              </span>
-                              <div className="flex gap-1">
-                                {[
-                                  { label: "Slow", value: 0.6 },
-                                  { label: "Normal", value: 0.85 },
-                                  { label: "Natural", value: 1.0 },
-                                  { label: "Fast", value: 1.2 }
-                                ].map((speedItem) => (
-                                  <button
-                                    key={speedItem.value}
-                                    onClick={() => setReadingSpeed(speedItem.value)}
-                                    className={`px-2 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${
-                                      readingSpeed === speedItem.value
-                                        ? "bg-indigo-600 text-white shadow-xs"
-                                        : "text-indigo-950 bg-white hover:bg-indigo-100/50 border border-indigo-100/40"
-                                    }`}
-                                  >
-                                    {speedItem.label} ({speedItem.value}x)
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-
-                            <span className="text-xs bg-indigo-100 text-indigo-800 font-black px-3 py-1.5 rounded-full uppercase tracking-wider">
-                              {selectedLesson.type}
-                            </span>
-                          </div>
+                          <span className="text-xs bg-indigo-100 text-indigo-800 font-black px-3 py-1 rounded-full uppercase tracking-wider">
+                            {selectedLesson.type}
+                          </span>
                         </div>
 
                         {selectedUnit.id === 5 && selectedLesson.id === 1 ? (
                           <ClassroomInteractive onSpeak={(t) => speakText(t)} readingSpeed={readingSpeed} />
                         ) : (
                           <>
-                            {/* Interactive Cartoon Comic Strip (القصص المصورة) */}
-                            <LessonComicStrip 
-                              unitId={selectedUnit.id} 
-                              lessonId={selectedLesson.id} 
-                              selectedLesson={selectedLesson} 
-                              onSpeak={(t, v) => speakText(t)} 
-                              readingSpeed={readingSpeed} 
-                            />
+                            {/* Lesson Song chant / Reading text layout */}
+                            {(selectedLesson.type === "song" || selectedLesson.type === "vocab" || selectedLesson.type === "phonics") && selectedLesson.content.songText && (
+                              <div className="bg-indigo-50 p-6 rounded-[32px] border-b-4 border-r-4 border-indigo-200 flex flex-col items-center text-center gap-5">
+                                <span className="text-5xl animate-bounce">
+                                  {selectedLesson.type === "song" ? "🎵" : selectedLesson.type === "phonics" ? "🗣️" : "📖"}
+                                </span>
+                                
+                                {/* Interactive Word Notice */}
+                                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-100/90 text-indigo-900 text-xs font-black shadow-xs select-none">
+                                  <span>👆 اضغط على أي كلمة للاستماع لنطقها منفردة مع التظليل الفوري</span>
+                                </div>
 
-                            {/* Contextual Educational Lesson Cartoon Illustration Card */}
-                            <div className="mt-6">
-                              <LessonIllustration unitId={selectedUnit.id} lessonId={selectedLesson.id} title={selectedLesson.title} />
-                            </div>
+                                <div className="max-w-md mx-auto w-full">
+                                  <div className="text-lg sm:text-xl font-black text-indigo-950 leading-relaxed font-serif italic text-center">
+                                    “
+                                    <div className="max-w-2xl mx-auto text-left w-full not-italic">
+                                      {selectedLesson.content.songText.split("\n").map((line, idx) => {
+                                        const offset = getLineWordOffset(selectedLesson.content.songText || "", idx);
+                                        if (line.trim().startsWith("•")) {
+                                          return (
+                                            <div key={idx} className="text-md sm:text-lg font-black text-indigo-950 leading-relaxed pl-4 border-l-4 border-indigo-400 my-2">
+                                              {renderInteractiveText(line.trim(), "Kore", offset)}
+                                            </div>
+                                          );
+                                        }
+                                        return (
+                                          <div key={idx} className={`text-md sm:text-lg font-black text-indigo-950 leading-relaxed ${selectedLesson.type === "song" ? "text-center italic" : "text-left"} my-2`}>
+                                            {renderInteractiveText(line, "Kore", offset)}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                    ”
+                                  </div>
+                                </div>
+                                
+                                <div className="flex flex-wrap items-center justify-center gap-3">
+                                  {speakingText === selectedLesson.content.songText && audioPlaybackActive ? (
+                                    <motion.button
+                                      whileHover={{ scale: 1.05, y: -2 }}
+                                      whileTap={{ scale: 0.95 }}
+                                      onClick={stopReading}
+                                      className="bg-rose-600 hover:bg-rose-700 text-white font-black uppercase py-4 px-8 rounded-[24px] shadow-[0_5px_0_0_#9f1239] hover:shadow-[0_2px_0_0_#9f1239] transition-all flex items-center justify-center gap-2 transform active:translate-y-1 cursor-pointer animate-pulse"
+                                    >
+                                      <Square className="w-5 h-5 fill-current" />
+                                      <span>إيقاف القراءة (STOP) ⏹️</span>
+                                    </motion.button>
+                                  ) : (
+                                    <motion.button
+                                      whileHover={{ scale: 1.05, y: -2 }}
+                                      whileTap={{ scale: 0.95 }}
+                                      onClick={() => speakText(selectedLesson.content.songText || "")}
+                                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase py-4 px-8 rounded-[24px] shadow-[0_5px_0_0_#4338ca] hover:shadow-[0_2px_0_0_#4338ca] transition-all flex items-center justify-center gap-2 transform active:translate-y-1 cursor-pointer"
+                                    >
+                                      <Volume2 className="w-5 h-5" />
+                                      <span>{selectedLesson.type === "song" ? "Listen and Sing! 🎙" : "Listen & Read Aloud! 🔊"}</span>
+                                    </motion.button>
+                                  )}
+                                </div>
+                              </div>
+                            )}
 
-                        {/* Interactive Word Reader Guidance Banner */}
-                        {(selectedLesson.type === "song" || selectedLesson.type === "vocab" || selectedLesson.type === "conversation" || selectedLesson.type === "phonics") && (
-                          <div className="bg-gradient-to-r from-sky-50 to-indigo-50 border border-indigo-100 rounded-2xl p-3 flex items-center gap-2.5 text-xs font-bold text-indigo-900 justify-center shadow-sm">
-                            <span className="text-base animate-pulse">🔊</span>
-                            <span className="text-center">
-                              <span className="text-sky-700">Click any word to hear its pronunciation!</span>
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Lesson Song chant / Reading text layout */}
-                        {(selectedLesson.type === "song" || selectedLesson.type === "vocab" || selectedLesson.type === "phonics") && selectedLesson.content.songText && (
-                          <div className="bg-indigo-50 p-6 sm:p-8 rounded-[32px] border-b-4 border-r-4 border-indigo-200 flex flex-col items-center text-center gap-5">
-                            <span className="text-5xl animate-bounce">
-                              {selectedLesson.type === "song" ? "🎵" : selectedLesson.type === "phonics" ? "🗣️" : "📖"}
-                            </span>
-                            <div className="max-w-2xl mx-auto text-left w-full">
-                              {selectedLesson.content.songText.split("\n").map((line, idx) => {
-                                const offset = getLineWordOffset(selectedLesson.content.songText || "", idx);
-                                if (line.trim().startsWith("•")) {
+                            {/* Lesson conversation dialogue layout */}
+                            {selectedLesson.type === "conversation" && selectedLesson.content.dialogue && (
+                              <div className="flex flex-col gap-4 max-w-xl mx-auto w-full mt-2">
+                                <div className="text-center">
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100 text-sky-900 text-xs font-black shadow-xs select-none">
+                                    💡 اضغط على أي كلمة لنطقها وتظليلها، أو اضغط على السطر للاستماع كاملاً
+                                  </span>
+                                </div>
+                                {selectedLesson.content.dialogue.map((line, key) => {
+                                  const isSpecial = line.speaker === "Mrs. Hind" || line.speaker === "Mrs Hind" || line.speaker === "Teacher" || line.speaker === "Policeman";
+                                  const isPlaying = speakingText === line.text && audioPlaybackActive;
+                                  const sChar = getSudaneseCharacter(line.speaker);
                                   return (
-                                    <div key={idx} className="text-md sm:text-lg font-black text-indigo-950 leading-relaxed pl-4 border-l-4 border-indigo-400 my-2">
-                                      {renderInteractiveText(line.trim(), "Kore", offset)}
+                                    <div 
+                                      key={key} 
+                                      className={`flex items-start gap-3 w-full ${isSpecial ? "flex-row-reverse" : ""}`}
+                                    >
+                                      <div className={`p-3 rounded-[20px] text-3xl font-black shadow-sm select-none shrink-0 ${isSpecial ? "bg-amber-100 text-amber-700 border-2 border-amber-300" : "bg-sky-100 text-sky-700 border-2 border-sky-300"}`}>
+                                        {sChar.avatar}
+                                      </div>
+                                      <motion.div 
+                                        onClick={() => {
+                                          if (isPlaying) {
+                                            stopReading();
+                                          } else {
+                                            speakText(line.text, line.voice);
+                                          }
+                                        }}
+                                        whileHover={{ scale: 1.01 }}
+                                        whileTap={{ scale: 0.99 }}
+                                        className={`flex-1 p-5 rounded-[24px] shadow-sm border-b-6 border-r-6 cursor-pointer transition-all ${
+                                          isSpecial 
+                                            ? isPlaying 
+                                              ? "bg-amber-100/95 border-amber-400 text-amber-950 ring-2 ring-amber-300 shadow-md" 
+                                              : "bg-amber-50/60 border-amber-200 hover:border-amber-400 text-slate-800"
+                                            : isPlaying 
+                                              ? "bg-sky-100/95 border-sky-400 text-sky-950 ring-2 ring-sky-300 shadow-md" 
+                                              : "bg-slate-50/70 border-slate-200 hover:border-sky-400 text-slate-800"
+                                        }`}
+                                      >
+                                        <div className="flex justify-between items-center mb-1.5">
+                                          <span className="text-xs font-black text-slate-500 uppercase tracking-widest">{line.speaker}</span>
+                                          <div className="p-1">
+                                            {isPlaying ? (
+                                              <button
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  stopReading();
+                                                }}
+                                                className="flex items-center gap-1 text-xs font-black text-rose-600 bg-rose-100 hover:bg-rose-200 px-2 py-0.5 rounded-full cursor-pointer animate-pulse"
+                                                title="إيقاف القراءة"
+                                              >
+                                                <Square className="w-3 h-3 fill-current" />
+                                                <span>إيقاف</span>
+                                              </button>
+                                            ) : (
+                                              <Volume2 className="w-5 h-5 text-slate-500 hover:scale-110 transition-transform" />
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div 
+                                          className="text-[16px] font-black leading-snug"
+                                          onClick={(e) => e.stopPropagation()}
+                                          onTouchStart={(e) => e.stopPropagation()}
+                                          onTouchEnd={(e) => e.stopPropagation()}
+                                        >
+                                          {renderInteractiveText(line.text, line.voice)}
+                                        </div>
+                                      </motion.div>
                                     </div>
                                   );
-                                }
-                                return (
-                                  <div key={idx} className={`text-md sm:text-lg font-black text-indigo-950 leading-relaxed ${selectedLesson.type === "song" ? "text-center italic" : "text-left"} my-2`}>
-                                    {renderInteractiveText(line, "Kore", offset)}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            <motion.button
-                              whileHover={{ scale: 1.05, y: -2 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => speakText(selectedLesson.content.songText || "")}
-                              className="bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase py-4 px-8 rounded-[24px] shadow-[0_5px_0_0_#4338ca] hover:shadow-[0_2px_0_0_#4338ca] transition-all flex items-center justify-center gap-2 transform active:translate-y-1 cursor-pointer"
-                            >
-                              {speakingText === selectedLesson.content.songText && audioPlaybackActive ? (
-                                <>
-                                  <VolumeX className="w-5 h-5 animate-spin" />
-                                  <span>{selectedLesson.type === "song" ? "Stop Singing" : "Stop Reading"}</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Volume2 className="w-5 h-5" />
-                                  <span>{selectedLesson.type === "song" ? "Listen and Sing! 🎙" : "Listen & Read Aloud! 🔊"}</span>
-                                </>
-                              )}
-                            </motion.button>
-                          </div>
-                        )}
+                                })}
+                              </div>
+                            )}
 
-                        {/* Lesson conversation dialogue layout */}
-                        {selectedLesson.type === "conversation" && selectedLesson.content.dialogue && (
-                          <div className="flex flex-col gap-4 max-w-xl mx-auto w-full mt-2">
-                            {selectedLesson.content.dialogue.map((line, key) => {
-                              const isSpecial = line.speaker === "Mrs. Hind" || line.speaker === "Mrs Hind" || line.speaker === "Teacher" || line.speaker === "Policeman";
-                              const isPlaying = speakingText === line.text && audioPlaybackActive;
-                              const sChar = getSudaneseCharacter(line.speaker);
-                              return (
-                                <div 
-                                  key={key} 
-                                  className={`flex items-start gap-3 w-full ${isSpecial ? "flex-row-reverse" : ""}`}
-                                >
-                                  <div className={`p-2.5 rounded-[22px] shadow-sm border-2 flex items-center justify-center select-none shrink-0 bg-gradient-to-br ${sChar.bgClass} w-16 h-16`}>
-                                    <div className="text-3xl filter drop-shadow-sm">{sChar.avatar}</div>
-                                  </div>
-                                  <motion.div 
-                                    onClick={() => speakText(line.text, line.voice)}
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    className={`flex-1 p-5 rounded-[24px] shadow-sm border-b-6 border-r-6 cursor-pointer transition-all ${
-                                      isSpecial 
-                                        ? isPlaying 
-                                          ? "bg-amber-100/90 border-amber-400 text-amber-950" 
-                                          : "bg-amber-50/60 border-amber-200 hover:border-amber-400 text-slate-800"
-                                        : isPlaying 
-                                          ? "bg-sky-100/90 border-sky-400 text-sky-950" 
-                                          : "bg-slate-50/70 border-slate-200 hover:border-sky-400 text-slate-800"
-                                    }`}
-                                  >
-                                    <div className="flex justify-between items-center mb-1">
-                                      <span className="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-                                        <span>{line.speaker}</span>
-                                      </span>
-                                      <div className="text-slate-400 p-1">
-                                        {isPlaying ? (
-                                          <VolumeX className="w-5 h-5 text-red-500 animate-pulse" />
-                                        ) : (
-                                          <Volume2 className="w-5 h-5 text-slate-500 hover:scale-110 transition-transform" />
-                                        )}
-                                      </div>
-                                    </div>
-                                    <div 
-                                      className="text-[16px] font-black leading-snug"
-                                      onClick={(e) => e.stopPropagation()}
-                                      onTouchStart={(e) => e.stopPropagation()}
-                                      onTouchEnd={(e) => e.stopPropagation()}
-                                    >
-                                      {renderInteractiveText(line.text, line.voice)}
-                                    </div>
-                                  </motion.div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
+                            {/* Optional visual comic strip */}
+                            {selectedLesson.content.comicStrip && selectedLesson.content.comicStrip.length > 0 && (
+                              <div className="mt-4 pt-4 border-t border-slate-100">
+                                <LessonComicStrip 
+                                  unitId={selectedUnit.id} 
+                                  lessonId={selectedLesson.id} 
+                                  selectedLesson={selectedLesson} 
+                                  onSpeak={(t, v) => speakText(t)} 
+                                  readingSpeed={readingSpeed} 
+                                />
+                              </div>
+                            )}
 
                         {/* Lesson Phonics list */}
                         {selectedLesson.type === "phonics" && selectedLesson.content.letters && (
@@ -2185,7 +2189,66 @@ export default function App() {
                     </span>
                   </div>
 
-                  {/* Combined Dynamic Quiz Engine based on Configured Scope */}
+                  {/* Quiz Sub-Mode Navigation Buttons */}
+                  <div className="flex flex-wrap gap-2 p-1.5 bg-white/90 backdrop-blur-md rounded-[24px] border-2 border-slate-200/80 shadow-xs">
+                    <button
+                      onClick={() => setQuizSubMode("quiz")}
+                      className={`flex-1 min-w-[140px] py-3 px-4 rounded-[18px] font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                        quizSubMode === "quiz"
+                          ? "bg-amber-500 text-white shadow-sm border-b-4 border-amber-700 scale-[1.02]"
+                          : "bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                      }`}
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      <span>Unit Quiz & Exam</span>
+                    </button>
+                    <button
+                      onClick={() => setQuizSubMode("playroom")}
+                      className={`flex-1 min-w-[140px] py-3 px-4 rounded-[18px] font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                        quizSubMode === "playroom"
+                          ? "bg-indigo-600 text-white shadow-sm border-b-4 border-indigo-800 scale-[1.02]"
+                          : "bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                      }`}
+                    >
+                      <Gamepad2 className="w-4 h-4" />
+                      <span>SMILE Playroom</span>
+                    </button>
+                    <button
+                      onClick={() => setQuizSubMode("dictation")}
+                      className={`flex-1 min-w-[140px] py-3 px-4 rounded-[18px] font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                        quizSubMode === "dictation"
+                          ? "bg-emerald-600 text-white shadow-sm border-b-4 border-emerald-800 scale-[1.02]"
+                          : "bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                      }`}
+                    >
+                      <PenTool className="w-4 h-4" />
+                      <span>Spelling Dictation</span>
+                    </button>
+                  </div>
+
+                  {quizSubMode === "playroom" && (
+                    <EducationalGames
+                      currentUnit={selectedUnit}
+                      speakText={speakText}
+                      addPoints={addPoints}
+                      addBadge={addBadge}
+                      points={points}
+                    />
+                  )}
+
+                  {quizSubMode === "dictation" && (
+                    <DictationGame
+                      units={SMILE_UNITS}
+                      speakText={speakText}
+                      readingSpeed={readingSpeed}
+                      addPoints={addPoints}
+                      addBadge={addBadge}
+                    />
+                  )}
+
+                  {quizSubMode === "quiz" && (
+                    <>
+                      {/* Combined Dynamic Quiz Engine based on Configured Scope */}
                   {quizIsConfiguring ? (
                     <div className="bg-white p-6 sm:p-8 rounded-[36px] border-b-8 border-r-8 border-slate-200/90 shadow-sm flex flex-col gap-6 max-w-2xl mx-auto w-full">
                       <div className="border-b border-slate-100 pb-4 text-center">
@@ -2433,6 +2496,8 @@ export default function App() {
                         </div>
                       );
                     })()
+                  )}
+                    </>
                   )}
                 </motion.div>
               )}
@@ -4048,7 +4113,6 @@ export default function App() {
           </div>
         </div>
       </footer>
-      </div>
     </div>
   );
 }
