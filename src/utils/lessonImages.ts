@@ -1,10 +1,8 @@
-/**
- * Utility to map Sudanese SMILE Syllabus Grade 3 (Book 1) units and lessons
- * to dedicated, high-quality, culturally authentic educational illustrations.
- * Incorporates custom Nano Banana storybook illustrations and tailored educational visuals.
- */
+import { getLessonIllustration } from "../lessonIllustrations";
+export { getLessonIllustration };
 
 const LESSON_IMAGE_MAP: Record<string, string> = {
+
   "1-1": "/illustrations/lessons/u1_l1.jpg", // Lesson 1: Hello!
   "1-2": "/illustrations/lessons/u1_l2.jpg", // Lesson 2: Numbers 1 to 4
   "1-3": "https://images.unsplash.com/photo-1596495578065-6e0763fa1178?auto=format&fit=crop&w=800&q=80", // Lesson 3: Numbers 5 to 10
@@ -208,7 +206,7 @@ const LESSON_SUDANESE_CARTOON_DESC: Record<string, string> = {
  */
 export function getLessonImageUrl(unitId: number, lessonId: number): string {
   const key = `${unitId}-${lessonId}`;
-  return LESSON_IMAGE_MAP[key] || "/illustrations/lessons/u1_l1.jpg";
+  return getLessonIllustration(unitId, lessonId, LESSON_IMAGE_MAP[key]);
 }
 
 /**

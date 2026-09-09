@@ -56,6 +56,7 @@ import InteractiveWord from "./components/InteractiveWord";
 import LessonIllustration from "./components/LessonIllustration";
 import LessonComicStrip from "./components/LessonComicStrip";
 import { getLessonImageUrl, getLessonCartoonDesc } from "./utils/lessonImages";
+import { getLessonIllustration } from "./lessonIllustrations";
 import APKInstallPrompt from "./components/APKInstallPrompt";
 import UnitActivities from "./components/UnitActivities";
 import ClassroomInteractive from "./components/ClassroomInteractive";
@@ -1712,7 +1713,7 @@ export default function App() {
                         <div className="w-full h-48 sm:h-72 rounded-[24px] sm:rounded-[28px] overflow-hidden border-2 border-indigo-100/90 bg-slate-50 relative group shadow-sm">
                           <img
                             key={`lesson-art-${selectedUnit.id}-${selectedLesson.id}`}
-                            src={getLessonImageUrl(selectedUnit.id, selectedLesson.id)}
+                            src={getLessonIllustration(selectedUnit.id, selectedLesson.id, getLessonImageUrl(selectedUnit.id, selectedLesson.id))}
                             alt={selectedLesson.title}
                             className="w-full h-full object-cover object-center transition-all duration-200"
                             loading="eager"
