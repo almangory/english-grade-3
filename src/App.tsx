@@ -1202,7 +1202,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-sky-50/50 flex flex-col font-sans select-none antialiased">
       {/* 🇸🇩 شريط السيو والروابط العكسية لقوقل - منصة نقلة الموحدة */}
-      <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-emerald-800 text-white py-2 px-4 text-xs font-sans flex items-center justify-between border-b border-emerald-700/50 shadow-sm no-print z-50">
+      <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-emerald-800 text-white py-2 px-4 text-xs font-sans flex items-center justify-between border-b border-emerald-700/50 shadow-sm no-print z-50" dir="rtl">
         <div className="flex items-center gap-2.5 font-bold">
           <span className="text-base">🇸🇩</span>
           <span className="tracking-wide">ضمن منظومة المناهج السودانية التفاعلية | منصة نقلة</span>
@@ -1284,28 +1284,28 @@ export default function App() {
       {/* Main Container Grid */}
       <div className="max-w-6xl w-full mx-auto flex-grow grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Navigation Rail / Left bar - list of book units as beautiful compact Bento tiles */}
-        <aside className="lg:col-span-3 flex flex-col gap-5">
+        {/* Navigation Rail / Menus bar - placed on the RIGHT on desktop for English layout */}
+        <aside className="lg:col-span-3 flex flex-col gap-5 order-1 lg:order-2">
           <div className="bg-white rounded-[32px] p-5 shadow-sm border-b-8 border-r-8 border-sky-100 flex flex-col gap-4">
             <button
               onClick={() => setShowUnitsList(!showUnitsList)}
               className="w-full text-left flex items-center justify-between border-b border-slate-100 pb-2 cursor-pointer group select-none"
               id="units-list-toggle"
             >
-              <h2 className="text-xs font-black text-sky-800 uppercase tracking-widest flex items-center gap-1.5">
-                <BookOpen className="w-4 h-4 text-sky-500" />
-                SMILE Units • Student Book Chapters
+              <h2 className="text-xs font-black text-sky-800 uppercase tracking-widest flex items-center gap-1.5 min-w-0">
+                <BookOpen className="w-4 h-4 text-sky-500 shrink-0" />
+                <span className="truncate">SMILE Units • Chapters</span>
               </h2>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 shrink-0 whitespace-nowrap ml-2">
                 {!showUnitsList && (
-                  <span className="text-[10px] font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
+                  <span className="text-[10px] font-black text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full uppercase tracking-wider animate-pulse whitespace-nowrap">
                     Tap to view
                   </span>
                 )}
                 {showUnitsList ? (
-                  <ChevronUp className="w-4 h-4 text-sky-500 transition-transform group-hover:scale-110" />
+                  <ChevronUp className="w-4 h-4 text-sky-500 transition-transform group-hover:scale-110 shrink-0" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-sky-500 transition-transform group-hover:scale-110" />
+                  <ChevronDown className="w-4 h-4 text-sky-500 transition-transform group-hover:scale-110 shrink-0" />
                 )}
               </div>
             </button>
@@ -1356,20 +1356,20 @@ export default function App() {
               className="w-full text-left flex items-center justify-between border-b border-slate-100 pb-2 cursor-pointer group select-none"
               id="sound-settings-toggle"
             >
-              <h3 className="text-xs font-black text-indigo-900 uppercase tracking-widest flex items-center gap-1.5">
-                <Settings className={`w-4 h-4 text-indigo-500 transition-transform duration-500 ${showSoundSettings ? "rotate-90" : ""}`} />
-                Sound Settings • Voice Engine
+              <h3 className="text-xs font-black text-indigo-900 uppercase tracking-widest flex items-center gap-1.5 min-w-0">
+                <Settings className={`w-4 h-4 text-indigo-500 shrink-0 transition-transform duration-500 ${showSoundSettings ? "rotate-90" : ""}`} />
+                <span className="truncate">Sound Settings</span>
               </h3>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 shrink-0 whitespace-nowrap ml-2">
                 {!showSoundSettings && (
-                  <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
+                  <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full uppercase tracking-wider animate-pulse whitespace-nowrap">
                     Tap to open
                   </span>
                 )}
                 {showSoundSettings ? (
-                  <ChevronUp className="w-4 h-4 text-indigo-500 transition-transform group-hover:scale-110" />
+                  <ChevronUp className="w-4 h-4 text-indigo-500 transition-transform group-hover:scale-110 shrink-0" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-indigo-500 transition-transform group-hover:scale-110" />
+                  <ChevronDown className="w-4 h-4 text-indigo-500 transition-transform group-hover:scale-110 shrink-0" />
                 )}
               </div>
             </button>
@@ -1509,8 +1509,8 @@ export default function App() {
           </div>
         </aside>
 
-        {/* Central interactive screen workspace */}
-        <main id="main-workspace" className="lg:col-span-9 flex flex-col gap-6">
+        {/* Central interactive screen workspace - placed on the LEFT on desktop */}
+        <main id="main-workspace" className="lg:col-span-9 flex flex-col gap-6 order-2 lg:order-1">
           
           {/* Main Interactive Sub-tabs selection - Bento Style */}
           <div className="bg-white rounded-[32px] p-2 shadow-sm border-b-6 border-sky-100 flex flex-wrap gap-1.5 no-print">
