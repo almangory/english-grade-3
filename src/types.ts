@@ -28,7 +28,22 @@ export interface Lesson {
     games?: QuizGame[];
     vocabulary?: WordItem[];
     songText?: string;
+    listeningScript?: string;
   };
+}
+
+export interface ListeningScriptItem {
+  id: string;
+  unitId: number;
+  unitTitle: string;
+  lessonId: number;
+  activityTitle: string;
+  pageNumber: number;
+  lines: Array<{
+    speaker?: string;
+    text: string;
+    arabic?: string;
+  }>;
 }
 
 export interface QuizGame {

@@ -14,6 +14,7 @@ import {
   ZoomIn,
   ZoomOut
 } from "lucide-react";
+import { SMILE_UNITS } from "../smileData";
 
 interface LessonFlipBookProps {
   onSpeak: (text: string) => void;
@@ -731,110 +732,164 @@ export default function LessonFlipBook({ onSpeak, selectedUnitId, onSelectUnitId
         }
       }
 
-      // Default layout for other units to display actual curriculum points with beautiful styles (compact)
+      // Dynamic layout for all units from official curriculum dataset
+      const currentUnit = SMILE_UNITS.find(u => u.id === unitId);
+      const currentLesson = currentUnit?.lessons.find(l => l.id === lessonNum);
+
       return (
-        <div className="space-y-4 sm:space-y-6 flex flex-col justify-between h-full">
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-left">
-            <h4 className="text-xs sm:text-sm font-black text-slate-800 uppercase leading-none">Lesson {lessonNum} Focus (محتوى الدرس):</h4>
-            <p className="text-xs sm:text-sm font-semibold text-slate-500 mt-2 leading-normal">
-              🔊 Listen, repeat and practice the words below (استمع، كرر وتدرب):
-            </p>
+        <div className="space-y-3 sm:space-y-4 flex flex-col justify-between h-full overflow-y-auto max-h-[550px] pr-1">
+          {/* Lesson Header Banner */}
+          <div className="bg-slate-50 p-3 sm:p-4 rounded-2xl border border-slate-200 text-left flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-wider text-indigo-700">
+                  {currentLesson?.type ? currentLesson.type.toUpperCase() : "LESSON"}
+                </span>
+                <span className="text-[10px] bg-indigo-100 text-indigo-900 font-bold px-2 py-0.5 rounded-md">
+                  Unit {unitId} • Lesson {lessonNum}
+                </span>
+              </div>
+              <h4 className="text-sm sm:text-base font-black text-slate-900 mt-1">
+                {currentLesson?.title || `Lesson ${lessonNum}`}
+              </h4>
+            </div>
+            <button
+              onClick={() => onSpeak(currentLesson?.title || "")}
+              className="p-2 rounded-xl bg-white border border-slate-200 hover:bg-indigo-50 text-indigo-600 transition-colors shadow-3xs cursor-pointer"
+              title="Listen to Title"
+            >
+              <Volume2 className="w-4 h-4" />
+            </button>
           </div>
 
-          <div className="space-y-2.5 sm:space-y-3.5 flex-grow flex flex-col justify-center">
-            {unitId === 2 && lessonNum === 1 && (
-              <>
-                {renderInteractiveLine("1 little, 2 little, 3 little crocodiles!", "١، ٢، ٣ تمساح صغير!")}
-                {renderInteractiveLine("10 crocodiles in the Nile.", "١٠ تماسيح في النيل")}
-                {renderInteractiveLine("man", "رجل")}
-                {renderInteractiveLine("neck", "رقبة")}
-              </>
+          {/* Song or Rhyme or Story */}
+          {currentLesson?.content.songText && (
+            <div className="p-3.5 sm:p-4 bg-amber-50/70 rounded-2xl border border-amber-200">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-black uppercase text-amber-900">
+                  🎵 Read & Chant (أنشودة / قراءة):
+                </p>
+                <button
+                  onClick={() => onSpeak(currentLesson.content.songText!)}
+                  className="text-xs font-black text-amber-700 hover:text-amber-900 flex items-center gap-1 bg-amber-100/60 px-2 py-1 rounded-lg cursor-pointer"
+                >
+                  <Volume2 className="w-3.5 h-3.5" />
+                  <span>Play All</span>
+                </button>
+              </div>
+              <div className="space-y-1.5 font-medium text-slate-800 text-xs sm:text-sm leading-relaxed">
+                {currentLesson.content.songText.split("\n").filter(l => l.trim()).slice(0, 8).map((line, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => onSpeak(line)}
+                    className="p-1.5 hover:bg-amber-100/60 rounded-lg cursor-pointer transition-colors flex items-center justify-between group"
+                  >
+                    <span>{line}</span>
+                    <Volume2 className="w-3 h-3 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Dialogue Turns */}
+          {currentLesson?.content.dialogue && currentLesson.content.dialogue.length > 0 && (
+            <div className="p-3.5 sm:p-4 bg-sky-50/60 rounded-2xl border border-sky-200 space-y-2">
+              <p className="text-xs font-black uppercase text-sky-900 mb-1">
+                💬 Listen & Speak (محادثة):
+              </p>
+              <div className="space-y-2">
+                {currentLesson.content.dialogue.map((turn, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => onSpeak(`${turn.speaker}: ${turn.text}`)}
+                    className="p-2 sm:p-2.5 bg-white border border-sky-150 rounded-xl hover:bg-sky-100/50 cursor-pointer transition-all flex items-start gap-2.5 shadow-3xs"
+                  >
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-sky-600 text-white shrink-0 mt-0.5">
+                      {turn.speaker}
+                    </span>
+                    <p className="text-xs sm:text-sm font-bold text-slate-800 flex-1 leading-snug">
+                      "{turn.text}"
+                    </p>
+                    <Volume2 className="w-3.5 h-3.5 text-sky-600 shrink-0 mt-0.5" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Vocabulary Cards */}
+          {currentLesson?.content.vocabulary && currentLesson.content.vocabulary.length > 0 && (
+            <div className="p-3 sm:p-4 bg-emerald-50/60 rounded-2xl border border-emerald-200">
+              <p className="text-xs font-black uppercase text-emerald-900 mb-2">
+                🌟 Key Words (المفردات الأساسية):
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {currentLesson.content.vocabulary.map((word) => (
+                  <div
+                    key={word.id}
+                    onClick={() => onSpeak(word.word)}
+                    className="p-2 sm:p-2.5 bg-white border border-emerald-150 rounded-xl hover:bg-emerald-100/50 cursor-pointer transition-all flex flex-col items-center text-center shadow-3xs group"
+                  >
+                    <span className="text-xl sm:text-2xl mb-1 group-hover:scale-110 transition-transform">
+                      {word.image}
+                    </span>
+                    <span className="text-xs sm:text-sm font-extrabold text-slate-900">
+                      {word.word}
+                    </span>
+                    <span className="text-[10px] font-semibold text-slate-500">
+                      {word.arabic}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Letters & Phonics */}
+          {currentLesson?.content.letters && currentLesson.content.letters.length > 0 && (
+            <div className="p-3 sm:p-4 bg-indigo-50/50 rounded-2xl border border-indigo-150">
+              <p className="text-xs font-black uppercase text-indigo-900 mb-2">
+                🔤 Phonics & Letters (الحروف والأصوات):
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {currentLesson.content.letters.map((ltr, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => onSpeak(ltr)}
+                    className="px-3 py-1.5 bg-white border border-indigo-200 rounded-xl font-black text-indigo-900 text-sm hover:bg-indigo-100 cursor-pointer shadow-3xs"
+                  >
+                    {ltr}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Listening Script Highlight if exists */}
+          {currentLesson?.content.listeningScript && (
+            <div
+              onClick={() => onSpeak(currentLesson.content.listeningScript!)}
+              className="p-3 bg-purple-50/70 border border-purple-200 rounded-xl cursor-pointer hover:bg-purple-100/60 transition-colors"
+            >
+              <div className="flex items-center gap-2 text-purple-900 text-xs font-black uppercase mb-1">
+                <Volume2 className="w-3.5 h-3.5 text-purple-700" />
+                <span>🎧 Listening Practice (نص الاستماع):</span>
+              </div>
+              <p className="text-xs font-semibold text-purple-950 leading-relaxed italic">
+                "{currentLesson.content.listeningScript}"
+              </p>
+            </div>
+          )}
+
+          {/* Fallback if empty */}
+          {!currentLesson?.content.songText &&
+            (!currentLesson?.content.dialogue || currentLesson.content.dialogue.length === 0) &&
+            (!currentLesson?.content.vocabulary || currentLesson.content.vocabulary.length === 0) && (
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center text-slate-600 font-semibold text-xs">
+                Lesson practice exercises and activities
+              </div>
             )}
-            {unitId === 2 && lessonNum === 2 && (
-              <>
-                {renderInteractiveLine("How old are you? I'm 8.", "كم عمرك؟ عمري ٨")}
-                {renderInteractiveLine("pen", "قلم")}
-                {renderInteractiveLine("lamp", "مصباح")}
-              </>
-            )}
-            {unitId === 2 && lessonNum === 3 && (
-              <>
-                {renderInteractiveLine("How many frogs are there? 3.", "كم عدد الضفادع؟ ٣")}
-                {renderInteractiveLine("quiet", "هادئ")}
-                {renderInteractiveLine("rabbit", "أرنب")}
-              </>
-            )}
-            {unitId === 3 && (
-              <>
-                {renderInteractiveLine("It's red!", "إنه أحمر!")}
-                {renderInteractiveLine("What colour is it? Blue.", "ما هذا اللون؟ أزرق")}
-                {renderInteractiveLine("Stop! Wait! Go!", "قف! انتظر! انطلق!")}
-              </>
-            )}
-            {unitId === 4 && (
-              <>
-                {renderInteractiveLine("I've got a lemon. My lemon is yellow.", "أنا أملك ليمونة. ليمونتي صفراء")}
-                {renderInteractiveLine("I've got a melon. My melon is green.", "أنا أملك بطيخة. بطيختي خضراء")}
-                {renderInteractiveLine("head, arms, hands, legs, feet", "الرأس، الأذرع، الأيدي، الأرجل، الأقدام")}
-              </>
-            )}
-            {unitId === 5 && (
-              <>
-                {renderInteractiveLine("Where is Mrs Hind?", "أين الأستاذة هند؟")}
-                {renderInteractiveLine("It's next to the book.", "إنه بجانب الكتاب")}
-                {renderInteractiveLine("The monkey's on the chair.", "القرد على الكرسي")}
-              </>
-            )}
-            {unitId === 6 && (
-              <>
-                {renderInteractiveLine("I'm a cat. I live in a flat.", "أنا قطة. أعيش في شقة")}
-                {renderInteractiveLine("I'm a bird. I live in a tree.", "أنا عصفور. أعيش في شجرة")}
-                {renderInteractiveLine("Where's the library?", "أين المكتبة؟")}
-              </>
-            )}
-            {unitId === 7 && (
-              <>
-                {renderInteractiveLine("This is me. I'm with my sister.", "هذا أنا. أنا مع أختي")}
-                {renderInteractiveLine("This is me and this is my brother.", "هذا أنا وهذا أخي")}
-                {renderInteractiveLine("What's the time? It's 9 o'clock.", "كم الساعة؟ إنها التاسعة تماماً")}
-              </>
-            )}
-            {unitId === 8 && (
-              <>
-                {renderInteractiveLine("I can see a book.", "أستطيع أن أرى كتاباً")}
-                {renderInteractiveLine("I can skip and I can hop.", "أستطيع نط الحبل وأستطيع الحجل")}
-                {renderInteractiveLine("Stand up. Sit down. Thank you.", "قف. اجلس. شكراً لك")}
-              </>
-            )}
-            {unitId === 9 && (
-              <>
-                {renderInteractiveLine("This is a map of Sudan.", "هذه خريطة السودان")}
-                {renderInteractiveLine("There are deserts, mountains and forests.", "هناك صحاري وجبال وغابات")}
-                {renderInteractiveLine("Camels have got long legs.", "الجمال تمتلك أرجلاً طويلة")}
-              </>
-            )}
-            {unitId === 10 && (
-              <>
-                {renderInteractiveLine("Point to the lemons. Point to the eggs.", "أشر إلى الليمون. أشر إلى البيض")}
-                {renderInteractiveLine("There is some milk in the fridge.", "هناك بعض الحليب في الثلاجة")}
-                {renderInteractiveLine("I'd like coffee, please.", "أود تناول القهوة من فضلك")}
-              </>
-            )}
-            {unitId === 11 && (
-              <>
-                {renderInteractiveLine("Excuse me, where's the museum?", "عذراً، أين المتحف؟")}
-                {renderInteractiveLine("Don't drop rubbish. Put it in the bin.", "لا ترمي القمامة. ضعها في السلة")}
-                {renderInteractiveLine("Keep Sudan clean.", "حافظ على السودان نظيفاً")}
-              </>
-            )}
-            {unitId === 12 && (
-              <>
-                {renderInteractiveLine("Eid Mubarak everyone!", "عيد مبارك للجميع!")}
-                {renderInteractiveLine("Whose flower is this? It's Cathy's flower.", "لمن هذه الزهرة؟ إنها زهرة كاثي")}
-                {renderInteractiveLine("I say Eid Mubarak to my grandfather.", "أقول عيد مبارك لجدي")}
-              </>
-            )}
-          </div>
         </div>
       );
     };

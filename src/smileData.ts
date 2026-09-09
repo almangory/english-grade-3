@@ -10,3 +10,5 @@ export const SMILE_UNITS: UnitItem[] = [
   ...units7to9,
   ...units10to12
 ];
+
+export { ALL_LISTENING_SCRIPTS } from "./smileData/listeningScripts";

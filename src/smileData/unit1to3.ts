@@ -35,9 +35,11 @@ export const units1to3: UnitItem[] = [
         content: {
           dialogue: [
             { speaker: "Badr", text: "Hi, I'm Badr.", voice: "Zephyr" },
-            { speaker: "Ahmed", text: "Hello, I'm Ahmed.", voice: "Kore" }
+            { speaker: "Ahmed", text: "Hello, I'm Ahmed.", voice: "Kore" },
+            { speaker: "Pupils", text: "Goodbye, Mrs Hind.", voice: "Zephyr" },
+            { speaker: "Mrs Hind", text: "Goodbye!", voice: "Kore" }
           ],
-          songText: "Alphabet Chant:\na b c d e f g\nh i j k l m n\no p q r s t u\nv w x y z"
+          songText: "Alphabet Chant:\na b c d e f g\nh i j k l m n\no p q r s t u\nv w x y z\n\nGoodbye, Mrs Hind!\nGoodbye!"
         }
       },
       {
@@ -45,7 +47,7 @@ export const units1to3: UnitItem[] = [
         title: "Lesson 2: Numbers 1 to 4",
         type: "vocab",
         content: {
-          songText: "Numbers Count:\n1, 2, 3, 4.\nPoint and say:\nA bag. 2 bags.\n\nWords:\napple, bed"
+          songText: "Numbers Count:\n1, 2, 3, 4.\nPoint and say:\nA bag. 2 bags.\n\nWords:\napple, bed, cat, bag"
         }
       },
       {
@@ -53,7 +55,7 @@ export const units1to3: UnitItem[] = [
         title: "Lesson 3: Numbers 5 to 10",
         type: "vocab",
         content: {
-          songText: "Numbers Count:\n5, 6, 7, 8, 9, 10.\n\nWords:\ncap, desk"
+          songText: "Numbers Count:\n5, 6, 7, 8, 9, 10.\n\nWords:\ncap, desk, pen, frog, egg, fan"
         }
       },
       {
@@ -67,7 +69,7 @@ export const units1to3: UnitItem[] = [
             { speaker: "Cathy", text: "What's your name?", voice: "Zephyr" },
             { speaker: "Fatma", text: "My name's Fatma.", voice: "Kore" }
           ],
-          songText: "Words:\negg, fan, desk, flag"
+          songText: "Words:\negg, fan, desk, flag\n\nAsk and answer:\nWhat's your name?\nMy name is..."
         }
       },
       {
@@ -76,11 +78,11 @@ export const units1to3: UnitItem[] = [
         type: "conversation",
         content: {
           dialogue: [
-            { speaker: "Ahmed", text: "Hi, Ahmed.", voice: "Kore" },
-            { speaker: "Mr Gamar", text: "Hello, Mr Gamar.", voice: "Zephyr" },
-            { speaker: "Ahmed", text: "This is Eddie, Mr Gamar.", voice: "Kore" },
-            { speaker: "Ahmed", text: "He's English.", voice: "Kore" },
-            { speaker: "Mr Gamar", text: "Hello, Eddie.", voice: "Zephyr" }
+            { speaker: "Ahmed", text: "Hello, Mr Gamar.", voice: "Kore" },
+            { speaker: "Mr Gamar", text: "Hello, Ahmed.", voice: "Zephyr" },
+            { speaker: "Ahmed", text: "This is Eddie, Mr Gamar. He's English.", voice: "Kore" },
+            { speaker: "Mr Gamar", text: "Hello, Eddie.", voice: "Zephyr" },
+            { speaker: "Eddie", text: "Hello, Mr Gamar.", voice: "Kore" }
           ],
           songText: "Words:\ngate, hat, frog, hen"
         }

@@ -58,6 +58,7 @@ import APKInstallPrompt from "./components/APKInstallPrompt";
 import UnitActivities from "./components/UnitActivities";
 import ClassroomInteractive from "./components/ClassroomInteractive";
 import LessonFlipBook from "./components/LessonFlipBook";
+import ListeningScriptsViewer from "./components/ListeningScriptsViewer";
 
 interface SudaneseCharacter {
   avatar: string;
@@ -213,11 +214,21 @@ export default function App() {
   const [selectedUnit, setSelectedUnit] = useState<UnitItem>(SMILE_UNITS[0]);
   const [selectedLesson, setSelectedLesson] = useState<Lesson>(SMILE_UNITS[0].lessons[0]);
   const [activeTab, setActiveTab] = useState<"book" | "dictionary" | "quiz" | "adventure" | "syllabus" | "print" | "game" | "dictation">("book");
-  const [bookSection, setBookSection] = useState<"lessons" | "activities" | "flipbook">("lessons");
+  const [bookSection, setBookSection] = useState<"lessons" | "activities" | "flipbook" | "listening">("lessons");
   const [selectedActivityIndex, setSelectedActivityIndex] = useState<number>(0);
   const [vocabMode, setVocabMode] = useState<"dictionary" | "flashcards">("dictionary");
   const [showUnitsList, setShowUnitsList] = useState(false);
   const [showSoundSettings, setShowSoundSettings] = useState(false);
+
+  // 🇸🇩 Naqla Unified Platform SSO User State
+  const [ssoUser] = useState<{ username?: string; name?: string } | null>(() => {
+    try {
+      const saved = localStorage.getItem("sudan_auth_user") || localStorage.getItem("currentUser") || localStorage.getItem("user");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   
   // Back button interception & Exit confirm state
   const [showExitConfirm, setShowExitConfirm] = useState(false);
@@ -1189,9 +1200,32 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-sky-50/50 flex flex-col font-sans select-none antialiased p-3 sm:p-6">
-      {/* Top Header section in Bento grid style */}
-      <header className="max-w-6xl w-full mx-auto mb-6 flex flex-col md:flex-row justify-between items-center gap-4 relative z-10">
+    <div className="min-h-screen bg-sky-50/50 flex flex-col font-sans select-none antialiased">
+      {/* 🇸🇩 شريط السيو والروابط العكسية لقوقل - منصة نقلة الموحدة */}
+      <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-emerald-800 text-white py-2 px-4 text-xs font-sans flex items-center justify-between border-b border-emerald-700/50 shadow-sm no-print z-50">
+        <div className="flex items-center gap-2.5 font-bold">
+          <span className="text-base">🇸🇩</span>
+          <span className="tracking-wide">ضمن منظومة المناهج السودانية التفاعلية | منصة نقلة</span>
+          {ssoUser && (
+            <span className="bg-emerald-700/80 text-emerald-100 text-[11px] font-black px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+              👤 مرحباً {ssoUser.name || ssoUser.username}
+            </span>
+          )}
+        </div>
+        <a
+          href="https://sudan-interactive-curricula.vercel.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-emerald-200 hover:text-white font-extrabold text-xs flex items-center gap-1.5 transition-colors bg-white/10 hover:bg-white/20 px-3 py-1 rounded-xl"
+        >
+          <span>العودة للمنصة الرئيسية</span>
+          <span>↗</span>
+        </a>
+      </div>
+
+      <div className="flex-grow flex flex-col p-3 sm:p-6">
+        {/* Top Header section in Bento grid style */}
+        <header className="max-w-6xl w-full mx-auto mb-6 flex flex-col md:flex-row justify-between items-center gap-4 relative z-10">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 bg-yellow-400 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-3xl animate-spin-slow">☀️</div>
           <div>
@@ -1646,6 +1680,16 @@ export default function App() {
                       >
                         <span>✏️ Activities</span>
                       </button>
+                      <button
+                        onClick={() => setBookSection("listening")}
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-3 px-4 rounded-[18px] text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                          bookSection === "listening"
+                            ? "bg-purple-600 text-white shadow-sm"
+                            : "text-slate-600 hover:bg-slate-200"
+                        }`}
+                      >
+                        <span>🎧 Listening</span>
+                      </button>
                     </div>
                   </div>
 
@@ -1992,6 +2036,20 @@ export default function App() {
                       addPoints={(amt) => setPoints((p) => p + amt)}
                       activeActivity={selectedActivityIndex}
                       setActiveActivity={setSelectedActivityIndex}
+                    />
+                  )}
+
+                  {bookSection === "listening" && (
+                    <ListeningScriptsViewer
+                      speakText={speakText}
+                      selectedUnitId={selectedUnit.id}
+                      onSelectUnitId={(id) => {
+                        const nextUnit = SMILE_UNITS.find(u => u.id === id);
+                        if (nextUnit) {
+                          setSelectedUnit(nextUnit);
+                          setSelectedLesson(nextUnit.lessons[0]);
+                        }
+                      }}
                     />
                   )}
                 </motion.div>
@@ -3990,6 +4048,7 @@ export default function App() {
           </div>
         </div>
       </footer>
+      </div>
     </div>
   );
 }

@@ -297,75 +297,93 @@ export const units4to6: UnitItem[] = [
         content: {
           dialogue: [
             { speaker: "Mum", text: "Put the fridge in the kitchen.", voice: "Zephyr" },
-            { speaker: "Ahmed", text: "Okay, Mum. Put it in the kitchen.", voice: "Kore" }
-          ]
+            { speaker: "Ahmed", text: "Okay, Mum. Put it in the kitchen.", voice: "Kore" },
+            { speaker: "Mum", text: "Put the bed in the bedroom.", voice: "Zephyr" },
+            { speaker: "Ahmed", text: "Yes, Mum. Put the chair in the living room.", voice: "Kore" }
+          ],
+          songText: "Rooms of the Home (أجزاء المنزل):\nmy bedroom, the living room, the kitchen, the bathroom.\n\nPoint and say:\nPut the bed in the bedroom.\nbed, chair, fridge, TV."
         }
       },
       {
         id: 2,
         title: "Lesson 2: Town Places",
-        type: "vocab",
+        type: "conversation",
         content: {
-          songText: "Places in town:\nWhere are we going?\nTo the school, to the mosque, to the park!\nHospital, market, museum too.\nSo many places to show to you!"
+          dialogue: [
+            { speaker: "Ahmed", text: "Where's the library?", voice: "Kore" },
+            { speaker: "Badr", text: "It's next to the market. It's in Nile Road.", voice: "Zephyr" },
+            { speaker: "Ahmed", text: "Where's the hospital?", voice: "Kore" },
+            { speaker: "Badr", text: "It's in Main Road next to the mosque.", voice: "Zephyr" }
+          ],
+          songText: "Places in our Town (أماكن المدينة):\nHello! My house is in Main Road. It's next to the shop.\nThe hospital is in Main Road next to the mosque.\nThe library is next to it.\nThere's a market in Nile Road. There's a park in Medani Road. It's next to my school."
         }
       },
       {
         id: 3,
         title: "Lesson 3: Where do you live?",
-        type: "conversation",
+        type: "song",
         content: {
-          dialogue: [
-            { speaker: "Eddie", text: "Where do you live, Hamad?", voice: "Kore" },
-            { speaker: "Hamad", text: "I live in a house. Do you live in a house?", voice: "Zephyr" },
-            { speaker: "Eddie", text: "No, I live in a flat.", voice: "Kore" }
-          ]
+          songText: "Animals and Homes Poem (قصيدة مساكن الحيوانات):\nI'm a mouse. I live in a house.\nI'm a cat. I live in a flat.\nI'm a bird. I live in a tree.\n\nTalk about you:\nI live in a house.\nI live in a flat.\nI live next to the school."
         }
       },
       {
         id: 4,
-        title: "Lesson 4: Look at the Tree",
-        type: "vocab",
+        title: "Lesson 4: Sea, Shell and Well",
+        type: "song",
         content: {
-          songText: "In the park:\nThere is a tree in the park.\nThere is a bird in the tree.\nThere is a mouse under the tree!"
+          songText: "Where Animals Live & Phonics (sh):\nI'm a fish. I live in the sea.\nI'm a snail. I live in my shell.\nI'm a frog. I live in a well.\n\nPhonics sh:\nLook at that shop.\nLook at that shell!\nLook at the fish."
         }
       },
       {
         id: 5,
-        title: "Lesson 5: Animals and Homes",
+        title: "Lesson 5: Animals and Trees (Part 1)",
         type: "conversation",
         content: {
           dialogue: [
-            { speaker: "Badr", text: "They live in a tree, Ahmed.", voice: "Zephyr" },
-            { speaker: "Ahmed", text: "Yes, the birds live in a tree. But the animals haven't got a home.", voice: "Kore" }
-          ]
+            { speaker: "Mouse", text: "It's nice here. A mouse and a rabbit, a monkey, live in a tree.", voice: "Zephyr" },
+            { speaker: "Woodcutter", text: "Stop! Cut the tree!", voice: "Kore" },
+            { speaker: "Animals", text: "I'm sad. I'm cold. I'm hungry.", voice: "Zephyr" },
+            { speaker: "Narrator", text: "The animals need a new home. They need a new tree.", voice: "Kore" }
+          ],
+          songText: "The Tree Story (قصة الشجرة والحيوانات):\nA mouse and a rabbit, a monkey, live in a tree.\nStop! Cut the tree!\nI'm sad. I'm cold. I'm hungry.\nThe animals need a new home. They need a new tree."
         }
       },
       {
         id: 6,
-        title: "Lesson 6: Frogs in the Well",
-        type: "vocab",
+        title: "Lesson 6: Plant the Seeds (Part 2)",
+        type: "conversation",
         content: {
-          songText: "Reading:\nThis is a lemon tree.\nThe man is cold.\nThe frogs live in a well.\nPlant the seeds and grow a new tree."
+          dialogue: [
+            { speaker: "Narrator", text: "The animals walk and walk. This is a nice tree.", voice: "Kore" },
+            { speaker: "Rabbit", text: "Look at the seeds!", voice: "Zephyr" },
+            { speaker: "Monkey", text: "Wait! Plant the seeds and grow new trees.", voice: "Kore" },
+            { speaker: "All", text: "Yes, grow them for our children, and for our children's children!", voice: "Zephyr" }
+          ],
+          songText: "Plant New Trees (ازرع شجرة جديدة):\nThis is a nice tree.\nThe animals walk and walk.\nLook at the seeds! Wait!\nPlant the seeds and grow new trees.\nYes, grow them for our children, and for our children's children."
         }
       },
       {
         id: 7,
-        title: "Lesson 7: Near my Home",
+        title: "Lesson 7: Where I Live",
         type: "conversation",
         content: {
           dialogue: [
-            { speaker: "Dalia", text: "My name is Dalia.", voice: "Kore" },
-            { speaker: "Dalia", text: "I live in a flat.", voice: "Kore" },
-            { speaker: "Dalia", text: "My home is near a shop and a school.", voice: "Kore" }
-          ]
+            { speaker: "Mona", text: "Hello. I'm Mona and I'm nine years old.", voice: "Kore" },
+            { speaker: "Mona", text: "I live in Museum Street. It's a big street with lots of cars.", voice: "Kore" },
+            { speaker: "Mona", text: "My flat is near the park. I live in flat twelve.", voice: "Kore" },
+            { speaker: "Faisal", text: "Hi. I'm Faisal and I'm eight years old.", voice: "Zephyr" },
+            { speaker: "Faisal", text: "I'm from Khartoum in Sudan and I live in house number twenty.", voice: "Zephyr" },
+            { speaker: "Faisal", text: "There are lots of trees in my street.", voice: "Zephyr" }
+          ],
+          songText: "Read and say:\nMy name is Mona. I live in a flat. It is near the park.\nMy name is Faisal. I live in a house. It is house number twenty."
         }
       },
       {
         id: 8,
-        title: "Lesson 8: Home Revision",
-        type: "vocab",
+        title: "Lesson 8: My Home is Best",
+        type: "song",
         content: {
-          songText: "Revision of places:\nfield, flat, house, river, sea, zoo.\nTrace and join p:\npen, open, play!"
+          songText: "My Home is Best Chant (نشيد مسكني هو الأفضل):\nI've got a home. I live in a field.\nI've got a home. I live in the sea.\nI've got a home. I live in a river.\nI've got a home. I live in a tree.\nI've got a home. I live in a nest.\nI've got a home. I live in my shell.\nI've got a home. I live in a flat.\nMy house is my home. My home is best!\n\nPhonics ch:\nchair, children, kitchen, teacher."
         }
       }
     ]
