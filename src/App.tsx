@@ -248,6 +248,7 @@ export default function App() {
   
   // Back button interception & Exit confirm state
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [isImageFullscreen, setIsImageFullscreen] = useState(false);
   const [isSearchBotOpen, setIsSearchBotOpen] = useState(false);
   const [showInstallDetails, setShowInstallDetails] = useState(false);
 
@@ -1699,13 +1700,14 @@ export default function App() {
 
                       <div className="bg-white p-4 sm:p-8 rounded-[32px] sm:rounded-[40px] border-b-8 border-r-8 border-indigo-100 flex flex-col gap-4 relative overflow-hidden">
                         {/* 🎨 Dedicated, instant-loading illustration for EVERY single lesson */}
-                        <div className="w-full h-48 sm:h-72 rounded-[24px] sm:rounded-[28px] overflow-hidden border-2 border-indigo-100/90 bg-slate-50 relative group shadow-sm">
+                        <div className="w-full aspect-[16/9] max-h-[580px] rounded-[24px] sm:rounded-[36px] overflow-hidden border-4 sm:border-[6px] border-indigo-200/90 bg-slate-900/5 relative group shadow-md sm:shadow-lg transition-all duration-300">
                           <img
                             key={`lesson-art-${selectedUnit.id}-${selectedLesson.id}`}
                             src={getLessonIllustration(selectedUnit.id, selectedLesson.id, getLessonImageUrl(selectedUnit.id, selectedLesson.id))}
                             alt={selectedLesson.title}
-                            className="w-full h-full object-cover object-center transition-all duration-200"
+                            className="w-full h-full object-cover object-center group-hover:scale-[1.012] transition-all duration-300 cursor-pointer"
                             loading="eager"
+                            onClick={() => setIsImageFullscreen(true)}
                             onError={(e) => {
                               const target = e.currentTarget;
                               const fallbackSrc = "/favicon.png";
@@ -1714,10 +1716,25 @@ export default function App() {
                               }
                             }}
                           />
-                          <div className="absolute bottom-2.5 right-3 bg-slate-950/85 backdrop-blur-sm text-white text-[10px] sm:text-[11px] font-black px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md border border-white/20">
+
+                          {/* Nano Banana badge */}
+                          <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 bg-slate-950/85 backdrop-blur-sm text-white text-[10px] sm:text-[11px] font-black px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-md border border-white/20 pointer-events-none select-none">
                             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                             <span>🎨 Nano Banana • Unit {selectedUnit.id} Lesson {selectedLesson.id}</span>
                           </div>
+
+                          {/* Fullscreen expand button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsImageFullscreen(true);
+                            }}
+                            className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-slate-950/80 hover:bg-slate-950 text-white text-xs font-black px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-md border border-white/20 backdrop-blur-sm transition-all transform hover:scale-105 cursor-pointer opacity-90 group-hover:opacity-100"
+                            title="عرض الصورة كاملة بدقة عالية"
+                          >
+                            <Maximize2 className="w-3.5 h-3.5 text-sky-300" />
+                            <span className="hidden sm:inline">عرض كامل</span>
+                          </button>
                         </div>
 
                         <div className="flex items-center justify-between mb-2">
@@ -4064,6 +4081,58 @@ export default function App() {
                 >
                   Yes, Exit 🚪
                 </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Fullscreen Image Preview Lightbox Modal */}
+      <AnimatePresence>
+        {isImageFullscreen && (
+          <div 
+            className="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center z-50 p-3 sm:p-6"
+            onClick={() => setIsImageFullscreen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.92 }}
+              className="bg-slate-900 rounded-[28px] sm:rounded-[40px] p-3 sm:p-5 max-w-5xl w-full max-h-[94vh] flex flex-col items-center border-4 border-indigo-400/80 shadow-2xl relative overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header Bar */}
+              <div className="w-full flex items-center justify-between px-3 py-2 text-white border-b border-white/10 mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs sm:text-sm font-black bg-indigo-600 px-3 py-1 rounded-full text-indigo-100">
+                    Unit {selectedUnit.id} • Lesson {selectedLesson.id}
+                  </span>
+                  <h3 className="text-xs sm:text-base font-black text-white truncate max-w-[220px] sm:max-w-md">
+                    {selectedLesson.title}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setIsImageFullscreen(false)}
+                  className="bg-white/10 hover:bg-rose-600 text-white p-2 rounded-full transition-colors cursor-pointer"
+                  title="إغلاق"
+                >
+                  <Minimize2 className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* High-res Image Display */}
+              <div className="w-full aspect-[16/9] max-h-[75vh] rounded-[20px] sm:rounded-[28px] overflow-hidden border-2 border-white/10 bg-slate-950 flex items-center justify-center">
+                <img
+                  src={getLessonIllustration(selectedUnit.id, selectedLesson.id, getLessonImageUrl(selectedUnit.id, selectedLesson.id))}
+                  alt={selectedLesson.title}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+
+              {/* Footer Note */}
+              <div className="w-full flex items-center justify-between px-3 pt-3 text-[11px] font-bold text-slate-400">
+                <span>🎨 Nano Banana 2D Education Artwork</span>
+                <span>SMILE English • Sudan Grade 3</span>
               </div>
             </motion.div>
           </div>
