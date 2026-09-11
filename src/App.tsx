@@ -1273,13 +1273,13 @@ export default function App() {
       <header className="max-w-6xl w-full mx-auto mb-6 flex flex-col md:flex-row justify-between items-center gap-4 relative z-10">
         <div className="flex items-center gap-3.5 w-full md:w-auto justify-between md:justify-start">
           <div className="flex items-center gap-3.5">
-            <div className="relative">
+            <div className="relative flex-shrink-0">
               <img
-                src="/favicon.png"
-                alt="NAQLA English App"
-                className="w-14 h-14 sm:w-16 sm:h-16 rounded-[20px] shadow-md border-2 border-white object-cover bg-white"
+                src="/logo.png"
+                alt="NAQLA English App Logo"
+                className="w-14 h-14 sm:w-16 sm:h-16 rounded-[22px] shadow-md border-2 border-white object-contain p-1 bg-white"
                 onError={(e) => {
-                  e.currentTarget.src = "/icon.svg";
+                  e.currentTarget.src = "/favicon.png";
                 }}
               />
               <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${isOnline ? "bg-emerald-500" : "bg-amber-500"}`} title={isOnline ? "متصل بالإنترنت" : "يعمل أوفلاين بدون إنترنت"} />
@@ -1289,7 +1289,7 @@ export default function App() {
                 <h1 className="text-2xl sm:text-3xl font-black text-sky-950 tracking-tight leading-none uppercase">NAQLA English</h1>
                 <span className="text-[10px] font-black uppercase tracking-wider bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full border border-sky-200">Book 3</span>
               </div>
-              <p className="text-sky-700 font-bold text-xs sm:text-sm mt-1">SMILE Grade 3 • Sudanese Curriculum</p>
+              <p className="text-sky-700 font-bold text-xs sm:text-sm mt-1">منصة تعليم اللغة الإنجليزية • SMILE Grade 3</p>
             </div>
           </div>
 
@@ -4438,7 +4438,10 @@ export default function App() {
       {/* Sudan Modern Learning Pupil English Footer Credits */}
       <footer className="max-w-6xl w-full mx-auto mt-8 py-6 text-center text-sky-700/60 font-semibold border-t border-sky-100">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-3 text-xs uppercase tracking-wider font-extrabold px-4">
-          <p>© SMILE English • Grade 3 Interactive Companion</p>
+          <div className="flex items-center gap-2.5">
+            <img src="/logo.png" alt="NAQLA" className="w-7 h-7 object-contain" />
+            <p>© SMILE English • Grade 3 Interactive Companion</p>
+          </div>
           <div className="flex gap-3">
             <span className="text-sky-800">Pupil's Book 3</span>
             <span>•</span>

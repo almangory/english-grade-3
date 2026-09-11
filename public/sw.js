@@ -1,4 +1,4 @@
-const CACHE_NAME = "smile-grade3-offline-v3";
+const CACHE_NAME = "smile-grade3-offline-v4";
 const AUDIO_CACHE_NAME = "smile-audio-cache";
 
 // Core static assets and app shell
@@ -7,7 +7,15 @@ const CORE_ASSETS = [
   "/index.html",
   "/manifest.json",
   "/favicon.png",
-  "/icon.svg"
+  "/favicon-32x32.png",
+  "/favicon-16x16.png",
+  "/favicon.ico",
+  "/icon.svg",
+  "/icon-192.png",
+  "/icon-512.png",
+  "/icon-maskable-512.png",
+  "/apple-touch-icon.png",
+  "/logo.png"
 ];
 
 // All dedicated lesson illustrations for all 12 units
