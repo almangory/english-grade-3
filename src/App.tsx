@@ -60,7 +60,6 @@ import { getLessonIllustration } from "./lessonIllustrations";
 import APKInstallPrompt from "./components/APKInstallPrompt";
 import UnitActivities from "./components/UnitActivities";
 import ClassroomInteractive from "./components/ClassroomInteractive";
-import LessonFlipBook from "./components/LessonFlipBook";
 import ListeningScriptsViewer from "./components/ListeningScriptsViewer";
 
 interface SudaneseCharacter {
@@ -217,7 +216,7 @@ export default function App() {
   const [selectedUnit, setSelectedUnit] = useState<UnitItem>(SMILE_UNITS[0]);
   const [selectedLesson, setSelectedLesson] = useState<Lesson>(SMILE_UNITS[0].lessons[0]);
   const [activeTab, setActiveTab] = useState<"book" | "dictionary" | "quiz" | "adventure" | "syllabus" | "print" | "game" | "dictation">("book");
-  const [bookSection, setBookSection] = useState<"lessons" | "activities" | "flipbook" | "listening">("lessons");
+  const [bookSection, setBookSection] = useState<"lessons" | "activities" | "listening">("lessons");
   const [selectedActivityIndex, setSelectedActivityIndex] = useState<number>(0);
   const [vocabMode, setVocabMode] = useState<"dictionary" | "flashcards">("dictionary");
   const [quizSubMode, setQuizSubMode] = useState<"quiz" | "playroom" | "dictation">("quiz");
@@ -1647,16 +1646,6 @@ export default function App() {
                         <span>📖 Lessons</span>
                       </button>
                       <button
-                        onClick={() => setBookSection("flipbook")}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-3 px-4 rounded-[18px] text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
-                          bookSection === "flipbook"
-                            ? "bg-indigo-600 text-white shadow-sm"
-                            : "text-slate-600 hover:bg-slate-200"
-                        }`}
-                      >
-                        <span>📘 Flip Book</span>
-                      </button>
-                      <button
                         onClick={() => setBookSection("activities")}
                         className={`flex-1 flex items-center justify-center gap-1.5 py-3 px-4 rounded-[18px] text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
                           bookSection === "activities"
@@ -1727,7 +1716,7 @@ export default function App() {
                           />
                           <div className="absolute bottom-2.5 right-3 bg-slate-950/85 backdrop-blur-sm text-white text-[10px] sm:text-[11px] font-black px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md border border-white/20">
                             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                            <span>NAQLA Art • Unit {selectedUnit.id} Lesson {selectedLesson.id}</span>
+                            <span>🎨 Nano Banana • Unit {selectedUnit.id} Lesson {selectedLesson.id}</span>
                           </div>
                         </div>
 
@@ -2017,20 +2006,6 @@ export default function App() {
                         </div>
                       </div>
                     </>
-                  )}
-
-                  {bookSection === "flipbook" && (
-                    <LessonFlipBook 
-                      onSpeak={(text) => speakText(text)} 
-                      selectedUnitId={selectedUnit.id}
-                      onSelectUnitId={(id) => {
-                        const nextUnit = SMILE_UNITS.find(u => u.id === id);
-                        if (nextUnit) {
-                          setSelectedUnit(nextUnit);
-                          setSelectedLesson(nextUnit.lessons[0]);
-                        }
-                      }}
-                    />
                   )}
 
                   {bookSection === "activities" && (

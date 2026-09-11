@@ -2,103 +2,102 @@ import { getLessonIllustration } from "../lessonIllustrations";
 export { getLessonIllustration };
 
 const LESSON_IMAGE_MAP: Record<string, string> = {
-
-  "1-1": "/illustrations/lessons/u1_l1.jpg", // Lesson 1: Hello!
-  "1-2": "/illustrations/lessons/u1_l2.jpg", // Lesson 2: Numbers 1 to 4
-  "1-3": "https://images.unsplash.com/photo-1596495578065-6e0763fa1178?auto=format&fit=crop&w=800&q=80", // Lesson 3: Numbers 5 to 10
-  "1-4": "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=800&q=80", // Lesson 4: What's your name?
-  "1-5": "/illustrations/lessons/u1_l5.jpg", // Lesson 5: This is Eddie
-  "1-6": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=800&q=80", // Lesson 6: Are you Sudanese?
-  "1-7": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=800&q=80", // Lesson 7: How are you?
-  "1-8": "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?auto=format&fit=crop&w=800&q=80", // Lesson 8: Phonics Song
-  "2-1": "/illustrations/lessons/u2_l1.jpg", // Lesson 1: Crocodile Chant
-  "2-2": "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=800&q=80", // Lesson 2: How old are you?
-  "2-3": "https://images.unsplash.com/photo-1505252585461-04db1eb84625?auto=format&fit=crop&w=800&q=80", // Lesson 3: How many frogs?
-  "2-4": "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80", // Lesson 4: Ten Cats
-  "2-5": "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?auto=format&fit=crop&w=800&q=80", // Lesson 5: Little Ali is Lost
-  "2-6": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80", // Lesson 6: Ali Finds His Mum
-  "2-7": "https://images.unsplash.com/photo-1508057198894-247b23fe5ade?auto=format&fit=crop&w=800&q=80", // Lesson 7: What's the time?
-  "2-8": "https://images.unsplash.com/photo-1503676382389-4809596d5290?auto=format&fit=crop&w=800&q=80", // Lesson 8: Phonics (m to z)
-  "3-1": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=800&q=80", // Lesson 1: Point to Colours
-  "3-2": "https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?auto=format&fit=crop&w=800&q=80", // Lesson 2: Colour Bingo
-  "3-3": "https://images.unsplash.com/photo-1508873696983-2df5293cb325?auto=format&fit=crop&w=800&q=80", // Lesson 3: Traffic Lights
-  "3-4": "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=80", // Lesson 4: What colour is it?
-  "3-5": "/illustrations/lessons/u3_l5.jpg", // Lesson 5: Our Sudanese Flag
-  "3-6": "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=800&q=80", // Lesson 6: Cathy's Picture
-  "3-7": "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80", // Lesson 7: Ali is Lost (Eyes and Hair)
-  "3-8": "https://images.unsplash.com/photo-1472162072942-cd5147eb3902?auto=format&fit=crop&w=800&q=80", // Lesson 8: Finding Ali
-  "4-1": "https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?auto=format&fit=crop&w=800&q=80", // Lesson 1: Lemons and Melons
-  "4-2": "https://images.unsplash.com/photo-1485546246426-74dc88dec4d9?auto=format&fit=crop&w=800&q=80", // Lesson 2: Who is that boy?
-  "4-3": "https://images.unsplash.com/photo-1505576399279-565b52d4ac71?auto=format&fit=crop&w=800&q=80", // Lesson 3: My Body
-  "4-4": "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80", // Lesson 4: How old are you? (Cards)
-  "4-5": "https://images.unsplash.com/photo-1534567153574-2b12153a87f0?auto=format&fit=crop&w=800&q=80", // Lesson 5: Animal Features
-  "4-6": "/illustrations/lessons/u4_l6.jpg", // Lesson 6: Gonfooth the Hedgehog
-  "4-7": "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=800&q=80", // Lesson 7: Photos of Sudan
-  "4-8": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=800&q=80", // Lesson 8: Names with A and B
-  "5-1": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=800&q=80", // Lesson 1: Point to the Class
-  "5-2": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80", // Lesson 2: What's in the bag?
-  "5-3": "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80", // Lesson 3: Photos from School
-  "5-4": "/illustrations/lessons/u5_l4.jpg", // Lesson 4: The Monkey on the Chair
-  "5-5": "https://images.unsplash.com/photo-1558060370-d644479cb6f7?auto=format&fit=crop&w=800&q=80", // Lesson 5: Where's my toy?
-  "5-6": "https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80", // Lesson 6: Sukkar's Tail
-  "5-7": "https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=800&q=80", // Lesson 7: Where's the ruler?
-  "5-8": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80", // Lesson 8: Hello, I'm Hassan
-  "6-1": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=800&q=80", // Lesson 1: In the Kitchen
-  "6-2": "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?auto=format&fit=crop&w=800&q=80", // Lesson 2: Town Places
-  "6-3": "https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=800&q=80", // Lesson 3: Where do you live?
-  "6-4": "https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=800&q=80", // Lesson 4: Sea, Shell and Well
-  "6-5": "/illustrations/lessons/u6_l5.jpg", // Lesson 5: Animals and Trees
-  "6-6": "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=800&q=80", // Lesson 6: Plant the Seeds
-  "6-7": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80", // Lesson 7: Where I Live
-  "6-8": "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", // Lesson 8: My Home is Best
-  "7-1": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=800&q=80", // Lesson 1: This is me
-  "7-2": "/illustrations/lessons/u7_l2.jpg", // Lesson 2: Dalia's Family Tree
-  "7-3": "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?auto=format&fit=crop&w=800&q=80", // Lesson 3: Have you got any brothers?
-  "7-4": "https://images.unsplash.com/photo-1476703993599-0035a21b17a9?auto=format&fit=crop&w=800&q=80", // Lesson 4: Rami and his Sisters
-  "7-5": "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=800&q=80", // Lesson 5: Stand next to your brother
-  "7-6": "https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&w=800&q=80", // Lesson 6: The Baby Chick
-  "7-7": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=800&q=80", // Lesson 7: Adil's Day
-  "7-8": "https://images.unsplash.com/photo-1609234656388-0ff363383899?auto=format&fit=crop&w=800&q=80", // Lesson 8: Family Revision
-  "8-1": "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=800&q=80", // Lesson 1: What can you see?
-  "8-2": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80", // Lesson 2: Simple Commands
-  "8-3": "https://images.unsplash.com/photo-1544717302-de2939b7ef71?auto=format&fit=crop&w=800&q=80", // Lesson 3: I can do actions!
-  "8-4": "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=800&q=80", // Lesson 4: Number Math
-  "8-5": "https://images.unsplash.com/photo-1552728089-57bdde30beb3?auto=format&fit=crop&w=800&q=80", // Lesson 5: Bulbul and Billi Birds
-  "8-6": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80", // Lesson 6: Sand and Sea
-  "8-7": "https://images.unsplash.com/photo-1596838132731-3301c3fd4317?auto=format&fit=crop&w=800&q=80", // Lesson 7: Wheels on the Car
-  "8-8": "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=800&q=80", // Lesson 8: Action Verbs Revision
-  "9-1": "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=800&q=80", // Lesson 1: Farm Animals Rhyme
-  "9-2": "https://images.unsplash.com/photo-1546182990-dffeafbe841d?auto=format&fit=crop&w=800&q=80", // Lesson 2: Nile Animals
-  "9-3": "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=800&q=80", // Lesson 3: Map of Sudan & Habitats
-  "9-4": "https://images.unsplash.com/photo-1534188753412-3e26d0d618d6?auto=format&fit=crop&w=800&q=80", // Lesson 4: Animal Abilities
-  "9-5": "https://images.unsplash.com/photo-1564349683136-77e08dba1ef6?auto=format&fit=crop&w=800&q=80", // Lesson 5: Actions Grid
-  "9-6": "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=800&q=80", // Lesson 6: Camels of the Desert
-  "9-7": "/illustrations/lessons/u9_l7.jpg", // Lesson 7: Waheed the Camel
-  "9-8": "https://images.unsplash.com/photo-1501535033-a59396afb33d?auto=format&fit=crop&w=800&q=80", // Lesson 8: Animals in Nature
-  "10-1": "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800&q=80", // Lesson 1: Food and Body Rhyme
-  "10-2": "https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?auto=format&fit=crop&w=800&q=80", // Lesson 2: In the Fridge & On the Shelf
-  "10-3": "https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=800&q=80", // Lesson 3: Fruit or Vegetable?
-  "10-4": "/illustrations/lessons/u10_l4.jpg", // Lesson 4: How to Make Mango Juice
-  "10-5": "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80", // Lesson 5: The Five Senses
-  "10-6": "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80", // Lesson 6: Fruit and Vegetables Science
-  "10-7": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80", // Lesson 7: Sudanese Breakfast
-  "10-8": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80", // Lesson 8: Food Revision
-  "11-1": "https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?auto=format&fit=crop&w=800&q=80", // Lesson 1: Where is the Museum?
-  "11-2": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80", // Lesson 2: What can we do there?
-  "11-3": "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?auto=format&fit=crop&w=800&q=80", // Lesson 3: In the Park
-  "11-4": "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=800&q=80", // Lesson 4: Keep the Park Tidy
-  "11-5": "https://images.unsplash.com/photo-1584697964190-7bb0db32e0e9?auto=format&fit=crop&w=800&q=80", // Lesson 5: Rubbish in the Classroom
-  "11-6": "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=800&q=80", // Lesson 6: Caring for our Environment
-  "11-7": "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=800&q=80", // Lesson 7: Two Trees Tale
-  "11-8": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80", // Lesson 8: Environment Revision
-  "12-1": "/illustrations/lessons/u12_l1.jpg", // Lesson 1: Clothes on the Line
-  "12-2": "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=800&q=80", // Lesson 2: Whose is this?
-  "12-3": "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80", // Lesson 3: Grandma's Eid Clothes
-  "12-4": "https://images.unsplash.com/photo-1575550959106-5a7defe28b56?auto=format&fit=crop&w=800&q=80", // Lesson 4: Eid at the Zoo
-  "12-5": "https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?auto=format&fit=crop&w=800&q=80", // Lesson 5: Visiting Grandma's House
-  "12-6": "/illustrations/lessons/u12_l6.jpg", // Lesson 6: How to Bake an Eid Cake
-  "12-7": "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=80", // Lesson 7: Eid Morning Schedule
-  "12-8": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80", // Lesson 8: Eid Manners & Revision
+  "1-1": "/illustrations/lessons/u1_l1.jpg",
+  "1-2": "/illustrations/lessons/u1_l2.jpg",
+  "1-3": "/illustrations/lessons/u1_l3.svg",
+  "1-4": "/illustrations/lessons/u1_l4.svg",
+  "1-5": "/illustrations/lessons/u1_l5.jpg",
+  "1-6": "/illustrations/lessons/u1_l6.svg",
+  "1-7": "/illustrations/lessons/u1_l7.svg",
+  "1-8": "/illustrations/lessons/u1_l8.svg",
+  "2-1": "/illustrations/lessons/u2_l1.jpg",
+  "2-2": "/illustrations/lessons/u2_l2.svg",
+  "2-3": "/illustrations/lessons/u2_l3.svg",
+  "2-4": "/illustrations/lessons/u2_l4.svg",
+  "2-5": "/illustrations/lessons/u2_l5.svg",
+  "2-6": "/illustrations/lessons/u2_l6.svg",
+  "2-7": "/illustrations/lessons/u2_l7.svg",
+  "2-8": "/illustrations/lessons/u2_l8.svg",
+  "3-1": "/illustrations/lessons/u3_l1.svg",
+  "3-2": "/illustrations/lessons/u3_l2.svg",
+  "3-3": "/illustrations/lessons/u3_l3.svg",
+  "3-4": "/illustrations/lessons/u3_l4.svg",
+  "3-5": "/illustrations/lessons/u3_l5.jpg",
+  "3-6": "/illustrations/lessons/u3_l6.svg",
+  "3-7": "/illustrations/lessons/u3_l7.svg",
+  "3-8": "/illustrations/lessons/u3_l8.svg",
+  "4-1": "/illustrations/lessons/u4_l1.svg",
+  "4-2": "/illustrations/lessons/u4_l2.svg",
+  "4-3": "/illustrations/lessons/u4_l3.svg",
+  "4-4": "/illustrations/lessons/u4_l4.svg",
+  "4-5": "/illustrations/lessons/u4_l5.svg",
+  "4-6": "/illustrations/lessons/u4_l6.jpg",
+  "4-7": "/illustrations/lessons/u4_l7.svg",
+  "4-8": "/illustrations/lessons/u4_l8.svg",
+  "5-1": "/illustrations/lessons/u5_l1.svg",
+  "5-2": "/illustrations/lessons/u5_l2.svg",
+  "5-3": "/illustrations/lessons/u5_l3.svg",
+  "5-4": "/illustrations/lessons/u5_l4.jpg",
+  "5-5": "/illustrations/lessons/u5_l5.svg",
+  "5-6": "/illustrations/lessons/u5_l6.svg",
+  "5-7": "/illustrations/lessons/u5_l7.svg",
+  "5-8": "/illustrations/lessons/u5_l8.svg",
+  "6-1": "/illustrations/lessons/u6_l1.svg",
+  "6-2": "/illustrations/lessons/u6_l2.svg",
+  "6-3": "/illustrations/lessons/u6_l3.svg",
+  "6-4": "/illustrations/lessons/u6_l4.svg",
+  "6-5": "/illustrations/lessons/u6_l5.jpg",
+  "6-6": "/illustrations/lessons/u6_l6.svg",
+  "6-7": "/illustrations/lessons/u6_l7.svg",
+  "6-8": "/illustrations/lessons/u6_l8.svg",
+  "7-1": "/illustrations/lessons/u7_l1.svg",
+  "7-2": "/illustrations/lessons/u7_l2.jpg",
+  "7-3": "/illustrations/lessons/u7_l3.svg",
+  "7-4": "/illustrations/lessons/u7_l4.svg",
+  "7-5": "/illustrations/lessons/u7_l5.svg",
+  "7-6": "/illustrations/lessons/u7_l6.svg",
+  "7-7": "/illustrations/lessons/u7_l7.svg",
+  "7-8": "/illustrations/lessons/u7_l8.svg",
+  "8-1": "/illustrations/lessons/u8_l1.svg",
+  "8-2": "/illustrations/lessons/u8_l2.svg",
+  "8-3": "/illustrations/lessons/u8_l3.svg",
+  "8-4": "/illustrations/lessons/u8_l4.svg",
+  "8-5": "/illustrations/lessons/u8_l5.jpg",
+  "8-6": "/illustrations/lessons/u8_l6.svg",
+  "8-7": "/illustrations/lessons/u8_l7.svg",
+  "8-8": "/illustrations/lessons/u8_l8.svg",
+  "9-1": "/illustrations/lessons/u9_l1.svg",
+  "9-2": "/illustrations/lessons/u9_l2.svg",
+  "9-3": "/illustrations/lessons/u9_l3.svg",
+  "9-4": "/illustrations/lessons/u9_l4.svg",
+  "9-5": "/illustrations/lessons/u9_l5.svg",
+  "9-6": "/illustrations/lessons/u9_l6.svg",
+  "9-7": "/illustrations/lessons/u9_l7.jpg",
+  "9-8": "/illustrations/lessons/u9_l8.svg",
+  "10-1": "/illustrations/lessons/u10_l1.svg",
+  "10-2": "/illustrations/lessons/u10_l2.svg",
+  "10-3": "/illustrations/lessons/u10_l3.svg",
+  "10-4": "/illustrations/lessons/u10_l4.jpg",
+  "10-5": "/illustrations/lessons/u10_l5.svg",
+  "10-6": "/illustrations/lessons/u10_l6.svg",
+  "10-7": "/illustrations/lessons/u10_l7.svg",
+  "10-8": "/illustrations/lessons/u10_l8.svg",
+  "11-1": "/illustrations/lessons/u11_l1.jpg",
+  "11-2": "/illustrations/lessons/u11_l2.svg",
+  "11-3": "/illustrations/lessons/u11_l3.svg",
+  "11-4": "/illustrations/lessons/u11_l4.svg",
+  "11-5": "/illustrations/lessons/u11_l5.svg",
+  "11-6": "/illustrations/lessons/u11_l6.svg",
+  "11-7": "/illustrations/lessons/u11_l7.svg",
+  "11-8": "/illustrations/lessons/u11_l8.svg",
+  "12-1": "/illustrations/lessons/u12_l1.jpg",
+  "12-2": "/illustrations/lessons/u12_l2.svg",
+  "12-3": "/illustrations/lessons/u12_l3.svg",
+  "12-4": "/illustrations/lessons/u12_l4.svg",
+  "12-5": "/illustrations/lessons/u12_l5.svg",
+  "12-6": "/illustrations/lessons/u12_l6.jpg",
+  "12-7": "/illustrations/lessons/u12_l7.svg",
+  "12-8": "/illustrations/lessons/u12_l8.svg",
 };
 
 const LESSON_SUDANESE_CARTOON_DESC: Record<string, string> = {
