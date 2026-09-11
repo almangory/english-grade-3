@@ -10,18 +10,36 @@ import {
   Sparkles, 
   Trash2, 
   BookOpen, 
+  Phone, 
+  PhoneOff, 
+  Camera, 
+  CameraOff, 
+  RefreshCw, 
+  Image as ImageIcon, 
+  Upload, 
+  Check, 
+  Radio, 
+  Smile, 
+  Star, 
   HelpCircle,
   Award,
   BookMarked,
-  ArrowRight
+  ArrowRight,
+  Maximize2,
+  Minimize2,
+  ExternalLink
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { searchSMILECurriculum, SearchResult } from "../smartSearch";
 import { Lesson, UnitItem, WordItem } from "../types";
 
+const CLOUD_FALLBACK_ENDPOINT = "https://local-ai-arsenal.pages.dev/api/mentor/chat";
+const CLOUD_FALLBACK_SCAN_ENDPOINT = "https://local-ai-arsenal.pages.dev/api/mentor/scan-camera-question";
+const SUDAN_BOT_AVATAR = "/assets/sudan_bot_avatar.png";
+
 interface SmartSearchBotProps {
-  onSelectLesson: (lesson: Lesson, unitId: number) => void;
-  speakText: (text: string, voiceName?: string) => void;
+  onSelectLesson?: (lesson: Lesson, unitId: number) => void;
+  speakText?: (text: string, voiceName?: string) => void;
   isOpen?: boolean;
   setIsOpen?: (open: boolean) => void;
 }
@@ -30,9 +48,26 @@ interface ChatMessage {
   id: string;
   sender: "user" | "bot";
   text: string;
+  image?: string;
   result?: SearchResult;
+  media?: {
+    type: "video" | "image";
+    title: string;
+    url?: string;
+    embed_url?: string;
+    channel?: string;
+  };
   timestamp: Date;
 }
+
+const GRADE_3_QUICK_PROMPTS = [
+  { label: "🔤 Phonics & ABCs", query: "Can we practice Phonics and letter sounds?" },
+  { label: "🎨 Colors & Numbers", query: "Teach me colors and numbers from 1 to 20!" },
+  { label: "🐶 Animals & Pets", query: "What are the animal names in English?" },
+  { label: "🏫 School & Classroom", query: "What are my school items in English?" },
+  { label: "👨‍👩‍👧 Family Members", query: "How do I talk about my family in English?" },
+  { label: "💡 Show Me Al-Zayt!", query: "اديني الزيت في انجليزي الصف الثالث الابتدائي" }
+];
 
 export default function SmartSearchBot({ 
   onSelectLesson, 
@@ -43,22 +78,77 @@ export default function SmartSearchBot({
   const [localIsOpen, setLocalIsOpen] = useState(false);
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : localIsOpen;
   const setIsOpen = controlledSetIsOpen !== undefined ? controlledSetIsOpen : setLocalIsOpen;
+
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
       sender: "bot",
-      text: "Welcome to the **SMILE English Smart Search Assistant**! 🧠✨\n\nI can help you find word meanings, explain grammar rules, learn about famous historical figures, and explore textbook lessons instantly and for free!\n\nFeel free to type your question, or click the **microphone 🎙️** to ask using your voice!",
+      text: "Hello superstar! 🤖🌟 I am **Sudan Bot**, your friendly English AI Teacher from **Naqla Platform**!\n\nI am here to help you practice speaking, phonics, vocabulary, and reading for your **SMILE Grade 3 English** book.\n\n✨ You can:\n- 💬 Type any English question\n- 🎙️ Click the **Mic** to talk to me\n- 📞 Click **Live Call** for a real voice conversation\n- 📸 Click the **Camera** to show me your book or homework!",
       timestamp: new Date()
     }
   ]);
+
+  const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
   const [botSoundEnabled, setBotSoundEnabled] = useState(true);
+  const [isLiveCallActive, setIsLiveCallActive] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
+  const [callSubtitle, setCallSubtitle] = useState("Connecting to Sudan Bot...");
+  const [isBotSpeaking, setIsBotSpeaking] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+
+  // Camera & vision state
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [isScanningImage, setIsScanningImage] = useState(false);
+
+  // Connection endpoint resolution state
+  const [resolvedEndpoint, setResolvedEndpoint] = useState<string>(CLOUD_FALLBACK_ENDPOINT);
+  const [isLocalConnected, setIsLocalConnected] = useState(false);
+
   const chatEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+  const continuousRecRef = useRef<any>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const callTimerRef = useRef<any>(null);
 
-  // Check speech recognition support (configured to listen to English speech input)
+  // 1. Detect and resolve active local tunnel or cloud fallback
+  useEffect(() => {
+    let isMounted = true;
+    async function resolveEndpoint() {
+      const candidates = [
+        "http://127.0.0.1:8000/api/mentor/chat",
+        "http://localhost:8000/api/mentor/chat"
+      ];
+      for (const url of candidates) {
+        try {
+          const controller = new AbortController();
+          const tid = setTimeout(() => controller.abort(), 1200);
+          const res = await fetch(url.replace("/chat", "/health"), { signal: controller.signal });
+          clearTimeout(tid);
+          if (res.ok && isMounted) {
+            setResolvedEndpoint(url);
+            setIsLocalConnected(true);
+            return;
+          }
+        } catch (e) {
+          // continue checking
+        }
+      }
+      if (isMounted) {
+        setResolvedEndpoint(CLOUD_FALLBACK_ENDPOINT);
+        setIsLocalConnected(false);
+      }
+    }
+    resolveEndpoint();
+    return () => { isMounted = false; };
+  }, []);
+
+  // 2. Setup speech recognition for English
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
@@ -66,152 +156,459 @@ export default function SmartSearchBot({
       const rec = new SpeechRecognition();
       rec.continuous = false;
       rec.interimResults = false;
-      rec.lang = "en-US"; // Configured to listen to English voice search input
+      rec.lang = "en-US";
       
-      rec.onstart = () => {
-        setIsListening(true);
-      };
-
+      rec.onstart = () => setIsListening(true);
       rec.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
         if (transcript) {
           setQuery(transcript);
-          handleSearch(transcript);
+          sendMessage(transcript);
         }
         setIsListening(false);
       };
-
-      rec.onerror = (e: any) => {
-        console.error("Speech recognition error:", e);
-        setIsListening(false);
-      };
-
-      rec.onend = () => {
-        setIsListening(false);
-      };
-
+      rec.onerror = () => setIsListening(false);
+      rec.onend = () => setIsListening(false);
       recognitionRef.current = rec;
     }
   }, []);
 
-  // Scroll to bottom when messages change
+  // 3. Scroll to bottom
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages, isOpen]);
+  }, [messages, isOpen, isLoading]);
 
-  // Handle English voice synthesis for the chatbot responses
-  const speakBotResponse = (text: string, englishTextOnly?: string) => {
-    if (!botSoundEnabled) return;
-    window.speechSynthesis.cancel();
-
-    // Stop any HTML5 audio playback (e.g. from the main reading aloud lesson/song)
-    document.querySelectorAll("audio").forEach((audio) => {
-      try {
-        audio.pause();
-        audio.src = "";
-      } catch (e) {
-        // ignore
+  // 4. Live Call Timer
+  useEffect(() => {
+    if (isLiveCallActive) {
+      setCallDuration(0);
+      callTimerRef.current = setInterval(() => {
+        setCallDuration(prev => prev + 1);
+      }, 1000);
+    } else {
+      if (callTimerRef.current) {
+        clearInterval(callTimerRef.current);
+        callTimerRef.current = null;
       }
-    });
-
-    // Use clean voice text, removing markdown syntax
-    const textToSpeak = englishTextOnly || text.replace(/[*#`_]/g, "");
-    const utterance = new SpeechSynthesisUtterance(textToSpeak);
-
-    utterance.lang = "en-US";
-    const voices = window.speechSynthesis.getVoices();
-    const enVoice = voices.find(v => v.lang.startsWith("en-")) || voices[0];
-    if (enVoice) {
-      utterance.voice = enVoice;
     }
-    
-    utterance.rate = 0.95;
-    window.speechSynthesis.speak(utterance);
+    return () => {
+      if (callTimerRef.current) clearInterval(callTimerRef.current);
+    };
+  }, [isLiveCallActive]);
+
+  // English Voice Synthesis
+  const speakEnglish = (text: string, onEndCallback?: () => void) => {
+    if (!botSoundEnabled && !isLiveCallActive) {
+      if (onEndCallback) onEndCallback();
+      return;
+    }
+
+    try {
+      window.speechSynthesis.cancel();
+      const clean = text.replace(/[*#`_\[\]()]/g, "").replace(/\n/g, " ").trim();
+      if (!clean) {
+        if (onEndCallback) onEndCallback();
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(clean);
+      utterance.lang = "en-US";
+      utterance.rate = 0.92; // Clear, friendly pace for grade 3 kids
+      utterance.pitch = 1.05;
+
+      const voices = window.speechSynthesis.getVoices();
+      const englishVoice = voices.find(v => v.lang.startsWith("en-US") && v.name.toLowerCase().includes("natural")) ||
+                           voices.find(v => v.lang.startsWith("en-US")) ||
+                           voices.find(v => v.lang.startsWith("en-GB")) ||
+                           voices.find(v => v.lang.startsWith("en"));
+      if (englishVoice) {
+        utterance.voice = englishVoice;
+      }
+
+      utterance.onstart = () => setIsBotSpeaking(true);
+      utterance.onend = () => {
+        setIsBotSpeaking(false);
+        if (onEndCallback) onEndCallback();
+      };
+      utterance.onerror = () => {
+        setIsBotSpeaking(false);
+        if (onEndCallback) onEndCallback();
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn("Speech synthesis error:", e);
+      setIsBotSpeaking(false);
+      if (onEndCallback) onEndCallback();
+    }
   };
 
-  const handleSearch = (searchQuery: string) => {
-    if (!searchQuery.trim()) return;
+  // Start continuous listening during Live Call
+  const startCallListening = () => {
+    if (isMuted || !isLiveCallActive) return;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
 
-    // Add user message
+    try {
+      if (continuousRecRef.current) {
+        try { continuousRecRef.current.abort(); } catch(e) {}
+      }
+      const rec = new SpeechRecognition();
+      rec.continuous = false;
+      rec.interimResults = true;
+      rec.lang = "en-US";
+
+      rec.onstart = () => {
+        setCallSubtitle("Listening to you... 🎙️ (Speak in English!)");
+      };
+
+      rec.onresult = (event: any) => {
+        const transcript = Array.from(event.results)
+          .map((r: any) => r[0].transcript)
+          .join("");
+        setCallSubtitle(`"${transcript}"`);
+        if (event.results[0].isFinal) {
+          rec.stop();
+          sendCallMessage(transcript);
+        }
+      };
+
+      rec.onerror = (e: any) => {
+        if (isLiveCallActive && !isBotSpeaking) {
+          setTimeout(startCallListening, 1500);
+        }
+      };
+
+      rec.onend = () => {
+        if (isLiveCallActive && !isBotSpeaking && !isLoading) {
+          // Restart loop if still in call
+          setTimeout(startCallListening, 600);
+        }
+      };
+
+      continuousRecRef.current = rec;
+      rec.start();
+    } catch (e) {
+      console.warn("Call listening error:", e);
+    }
+  };
+
+  // Send message from Live Call
+  const sendCallMessage = async (userText: string) => {
+    if (!userText.trim()) return;
+    setIsLoading(true);
+    setCallSubtitle("Sudan Bot is thinking... 🤖💭");
+
+    // Add to message history
     const userMsg: ChatMessage = {
       id: Math.random().toString(),
       sender: "user",
-      text: searchQuery,
+      text: userText,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, userMsg]);
+
+    try {
+      const historyPayload = messages.slice(-6).map(m => ({
+        role: m.sender === "user" ? "user" : "assistant",
+        content: m.text
+      }));
+
+      const res = await fetch(resolvedEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: userText,
+          stage: "english-grade-3",
+          is_voice_call: true,
+          history: historyPayload
+        })
+      });
+
+      let replyText = "";
+      if (res.ok) {
+        const data = await res.json();
+        replyText = data.reply || data.text || "That's great! Let's keep practicing!";
+      } else {
+        // Fallback local pattern search
+        const localRes = searchSMILECurriculum(userText);
+        replyText = localRes.reply || "Good effort! Can you repeat that for me?";
+      }
+
+      const botMsg: ChatMessage = {
+        id: Math.random().toString(),
+        sender: "bot",
+        text: replyText,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, botMsg]);
+      setCallSubtitle(replyText);
+
+      // Speak response aloud, then resume listening
+      speakEnglish(replyText, () => {
+        if (isLiveCallActive) {
+          setTimeout(startCallListening, 400);
+        }
+      });
+    } catch (err) {
+      const fallbackMsg = "Superstar! Let's practice saying: Hello Sudan Bot!";
+      setCallSubtitle(fallbackMsg);
+      speakEnglish(fallbackMsg, () => {
+        if (isLiveCallActive) setTimeout(startCallListening, 500);
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Send general chat message
+  const sendMessage = async (textToSend?: string) => {
+    const rawText = textToSend !== undefined ? textToSend : query;
+    if (!rawText.trim() && !capturedImage) return;
+
+    const userText = rawText.trim();
+    const currentImg = capturedImage;
+
+    const userMsg: ChatMessage = {
+      id: Math.random().toString(),
+      sender: "user",
+      text: userText || "📸 [Shared a picture from Camera]",
+      image: currentImg || undefined,
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMsg]);
     setQuery("");
+    setCapturedImage(null);
+    setIsLoading(true);
 
-    // Simulate thinking/searching delay
-    setTimeout(() => {
-      const searchResult = searchSMILECurriculum(searchQuery);
+    try {
+      let replyText = "";
+      let mediaData = undefined;
+
+      // If user provided an image, try camera scan endpoint first
+      if (currentImg) {
+        try {
+          const scanUrl = resolvedEndpoint.replace("/api/mentor/chat", "/api/mentor/scan-camera-question");
+          // Convert base64 to blob
+          const byteString = atob(currentImg.split(",")[1]);
+          const mimeString = currentImg.split(",")[0].split(":")[1].split(";")[0];
+          const ab = new ArrayBuffer(byteString.length);
+          const ia = new Uint8Array(ab);
+          for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+          }
+          const blob = new Blob([ab], { type: mimeString });
+          const formData = new FormData();
+          formData.append("image", blob, "camera_capture.jpg");
+          formData.append("stage", "english-grade-3");
+          formData.append("history", JSON.stringify(messages.slice(-4).map(m => ({ role: m.sender === "user" ? "user" : "assistant", content: m.text }))));
+
+          const scanRes = await fetch(scanUrl, {
+            method: "POST",
+            body: formData
+          });
+
+          if (scanRes.ok) {
+            const scanData = await scanRes.json();
+            replyText = scanData.reply || `I looked at your picture! 📸🌟 ${scanData.extracted_text ? `It says: "${scanData.extracted_text}".` : "Let's read this together!"}`;
+          }
+        } catch (imgErr) {
+          console.warn("Camera scan error:", imgErr);
+        }
+      }
+
+      // If no reply yet, send normal chat payload
+      if (!replyText) {
+        const historyPayload = messages.slice(-6).map(m => ({
+          role: m.sender === "user" ? "user" : "assistant",
+          content: m.text
+        }));
+
+        const res = await fetch(resolvedEndpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: userText || "Look at the picture I sent!",
+            stage: "english-grade-3",
+            history: historyPayload
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          replyText = data.reply || data.text;
+          if (data.media) mediaData = data.media;
+        } else {
+          // Offline local curriculum search fallback
+          const localSearch = searchSMILECurriculum(userText);
+          replyText = localSearch.reply;
+        }
+      }
+
       const botMsg: ChatMessage = {
         id: Math.random().toString(),
         sender: "bot",
-        text: searchResult.reply,
-        result: searchResult,
+        text: replyText || "Great job practicing! Keep it up!",
+        media: mediaData,
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, botMsg]);
 
-      // Speak the response voice text
+      // Speak bot response if audio enabled
       if (botSoundEnabled) {
-        speakBotResponse(searchResult.reply, searchResult.voiceText);
+        speakEnglish(replyText);
       }
-    }, 450);
+    } catch (error) {
+      console.warn("Fetch error, using local fallback:", error);
+      const localResult = searchSMILECurriculum(userText);
+      const botMsg: ChatMessage = {
+        id: Math.random().toString(),
+        sender: "bot",
+        text: localResult.reply,
+        result: localResult,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, botMsg]);
+      if (botSoundEnabled) {
+        speakEnglish(localResult.reply);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const toggleListening = () => {
+  // Toggle Live Audio Call
+  const toggleLiveCall = () => {
+    if (isLiveCallActive) {
+      // End call
+      setIsLiveCallActive(false);
+      window.speechSynthesis.cancel();
+      setIsBotSpeaking(false);
+      if (continuousRecRef.current) {
+        try { continuousRecRef.current.abort(); } catch(e) {}
+      }
+    } else {
+      // Start call
+      window.speechSynthesis.cancel();
+      setIsLiveCallActive(true);
+      const greeting = "Hello! I am Sudan Bot! I can hear you clearly now. What English words would you like to learn today?";
+      setCallSubtitle(greeting);
+      speakEnglish(greeting, () => {
+        setTimeout(startCallListening, 300);
+      });
+    }
+  };
+
+  // Camera Management
+  const startCamera = async () => {
+    setIsCameraOpen(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+        audio: false
+      });
+      setCameraStream(stream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (e) {
+      console.warn("Camera stream error, falling back to file input:", e);
+      if (fileInputRef.current) {
+        fileInputRef.current.click();
+      }
+    }
+  };
+
+  const stopCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      setCameraStream(null);
+    }
+    setIsCameraOpen(false);
+  };
+
+  const takePhoto = () => {
+    if (!videoRef.current) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = videoRef.current.videoWidth || 640;
+    canvas.height = videoRef.current.videoHeight || 480;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+      setCapturedImage(dataUrl);
+      stopCamera();
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setCapturedImage(event.target?.result as string);
+      stopCamera();
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const toggleMic = () => {
     if (!speechSupported || !recognitionRef.current) {
-      alert("Sorry, your browser doesn't support speech input right now, or microphone permissions are required.");
+      alert("Microphone voice input is not supported in this browser or permissions were not granted.");
       return;
     }
-
     if (isListening) {
       recognitionRef.current.stop();
     } else {
-      window.speechSynthesis.cancel(); // Stop speaking before listening
+      window.speechSynthesis.cancel();
       recognitionRef.current.start();
     }
   };
 
-  const clearChat = () => {
-    setMessages([
-      {
-        id: "welcome",
-        sender: "bot",
-        text: "Chat cleared successfully! 🧼\n\nI'm ready for your new questions about the SMILE Grade 1 English textbook. Ask me anything!",
-        timestamp: new Date()
-      }
-    ]);
-    window.speechSynthesis.cancel();
+  const formatTimer = (seconds: number) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+    const s = (seconds % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
   };
 
   return (
     <div className="no-print relative z-50">
-      {/* 1. Floating Action Button (FAB) */}
+      {/* 1. Floating Action Button (FAB) featuring Sudan Bot Mascot */}
       <motion.button
         id="smart-search-fab"
         onClick={() => setIsOpen(!isOpen)}
-        whileHover={{ scale: 1.1, rotate: 3 }}
-        whileTap={{ scale: 0.9 }}
-        className="fixed bottom-6 right-6 bg-gradient-to-r from-indigo-600 via-violet-600 to-sky-500 text-white p-4 sm:p-5 rounded-full shadow-[0_10px_30px_rgba(79,70,229,0.4)] cursor-pointer flex items-center justify-center border-4 border-white select-none transition-shadow hover:shadow-[0_15px_35px_rgba(79,70,229,0.6)] group"
-        title="Smart Curriculum Assistant"
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.92 }}
+        className="fixed bottom-6 right-6 bg-gradient-to-br from-sky-500 via-indigo-600 to-violet-700 text-white p-2.5 sm:p-3 rounded-full shadow-[0_10px_35px_rgba(3,105,161,0.45)] cursor-pointer flex items-center justify-center border-4 border-white select-none transition-all hover:shadow-[0_15px_40px_rgba(79,70,229,0.6)] group"
+        title="Sudan Bot • English AI Tutor"
       >
-        <span className="absolute -top-1 -left-1 bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-bounce shadow-md">
-          NEW ⚡
+        <span className="absolute -top-2 -left-2 bg-gradient-to-r from-amber-400 to-rose-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full animate-bounce shadow-md flex items-center gap-1 border border-white/50">
+          <Sparkles className="w-3 h-3 fill-white" />
+          AI BOT
         </span>
-        
+
         {isOpen ? (
-          <X className="w-6 sm:w-7 h-6 sm:h-7" />
+          <div className="w-11 h-11 sm:w-13 sm:h-13 flex items-center justify-center">
+            <X className="w-7 h-7 text-white" />
+          </div>
         ) : (
-          <div className="relative flex items-center justify-center">
-            <MessageCircle className="w-6 sm:w-7 h-6 sm:h-7 animate-pulse group-hover:scale-105" />
-            <Sparkles className="absolute -bottom-1 -right-2 w-3.5 h-3.5 text-yellow-300" />
+          <div className="relative flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14">
+            <img 
+              src={SUDAN_BOT_AVATAR} 
+              alt="Sudan Bot Avatar" 
+              className="w-12 h-12 sm:w-14 sm:h-14 object-contain rounded-full drop-shadow-md group-hover:scale-110 transition-transform"
+              onError={(e) => {
+                // Fallback icon if image fails
+                (e.target as HTMLElement).style.display = "none";
+              }}
+            />
+            {/* Pulsing online badge */}
+            <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-white animate-pulse" />
           </div>
         )}
       </motion.button>
@@ -221,255 +618,447 @@ export default function SmartSearchBot({
         {isOpen && (
           <motion.div
             id="smart-search-chat-window"
-            initial={{ opacity: 0, scale: 0.85, y: 50 }}
+            initial={{ opacity: 0, scale: 0.88, y: 40 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.85, y: 50 }}
-            className="fixed bottom-24 right-4 sm:right-6 w-[92vw] sm:w-[440px] h-[580px] max-h-[80vh] bg-white rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.22)] border-4 border-indigo-600/90 flex flex-col overflow-hidden z-50"
-            style={{ direction: "ltr" }} // Configured to standard LTR for the English assistant
+            exit={{ opacity: 0, scale: 0.88, y: 40 }}
+            className="fixed bottom-24 right-3 sm:right-6 w-[94vw] sm:w-[460px] h-[640px] max-h-[84vh] bg-white rounded-[32px] shadow-[0_25px_60px_rgba(15,23,42,0.25)] border-4 border-sky-500/80 flex flex-col overflow-hidden z-50 font-sans"
+            style={{ direction: "ltr" }}
           >
-            {/* Header banner */}
-            <div className="bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-700 text-white p-4 flex items-center justify-between border-b-2 border-indigo-200 shadow-sm shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20 shadow-inner">
-                  <span className="text-2xl">🧠</span>
+            {/* Header with Sudan Bot identity and Direct Live Call button */}
+            <div className="bg-gradient-to-r from-sky-600 via-indigo-600 to-violet-700 text-white p-3.5 sm:p-4 flex items-center justify-between border-b-2 border-sky-300 shadow-sm shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="relative w-11 h-11 rounded-2xl bg-white/15 p-0.5 flex items-center justify-center border border-white/30 shadow-inner">
+                  <img 
+                    src={SUDAN_BOT_AVATAR} 
+                    alt="Sudan Bot" 
+                    className="w-full h-full object-contain rounded-xl"
+                  />
+                  <span className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${isLocalConnected ? "bg-emerald-400" : "bg-sky-300"}`} title={isLocalConnected ? "Local AI Server Connected" : "Cloudflare Edge Connected"} />
                 </div>
                 <div className="text-left">
                   <h3 className="font-black text-sm sm:text-base leading-tight flex items-center gap-1.5">
-                    SMILE Smart Search
-                    <Sparkles className="w-4 h-4 text-amber-300 fill-amber-300" />
+                    SUDAN BOT
+                    <span className="text-[10px] bg-amber-400 text-slate-900 font-extrabold px-1.5 py-0.5 rounded-md shadow-xs">
+                      Primary 3
+                    </span>
                   </h3>
-                  <p className="text-[10px] sm:text-[11px] font-bold text-indigo-100/80">Grade 1 English Assistant</p>
+                  <p className="text-[11px] font-bold text-sky-100/90 flex items-center gap-1">
+                    English Teacher • منصة نَقْـلَة 🇸🇩
+                  </p>
                 </div>
               </div>
 
-              {/* Utility Header Actions */}
+              {/* Action buttons: Live Call, Audio Mute, and Close */}
               <div className="flex items-center gap-1.5">
+                {/* Direct Live Call Button */}
                 <button
-                  onClick={() => setBotSoundEnabled(!botSoundEnabled)}
-                  className={`p-2 rounded-xl transition-all ${botSoundEnabled ? "bg-white/15 text-white" : "bg-red-500/30 text-red-200"}`}
-                  title={botSoundEnabled ? "Mute Bot" : "Unmute Bot"}
+                  onClick={toggleLiveCall}
+                  className="bg-emerald-500 hover:bg-emerald-400 text-white font-extrabold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer border border-white/30 animate-pulse"
+                  title="Start Live Audio Call with Sudan Bot"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  <span>Call</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    const nextState = !botSoundEnabled;
+                    setBotSoundEnabled(nextState);
+                    if (!nextState) window.speechSynthesis.cancel();
+                  }}
+                  className={`p-2 rounded-xl transition-all ${botSoundEnabled ? "bg-white/15 text-white hover:bg-white/25" : "bg-rose-500/40 text-rose-100"}`}
+                  title={botSoundEnabled ? "Mute English Voice" : "Enable English Voice"}
                 >
                   {botSoundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
                 </button>
-                <button
-                  onClick={clearChat}
-                  className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-all text-white/90 hover:text-white"
-                  title="Clear Chat"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-all"
-                  title="Close Dialog"
+                  className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all"
+                  title="Close Assistant"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            {/* Conversation Messages area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/70 select-all">
+            {/* Quick Grade 3 English Topics Bar */}
+            <div className="bg-sky-50/90 border-b border-sky-100 px-3 py-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0 text-xs">
+              <span className="text-[10px] font-bold text-sky-700 uppercase tracking-wider shrink-0 flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-amber-500" /> Topics:
+              </span>
+              {GRADE_3_QUICK_PROMPTS.map((chip, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => sendMessage(chip.query)}
+                  className="shrink-0 bg-white hover:bg-sky-100 text-sky-900 border border-sky-200 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-2xs"
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Chat Messages Feed */}
+            <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 bg-gradient-to-b from-sky-50/40 via-white to-slate-50/50">
               {messages.map((msg) => (
-                <div key={msg.id} className="space-y-2">
-                  <div className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"} items-start gap-2.5`}>
-                    {/* Bot avatar */}
-                    {msg.sender === "bot" && (
-                      <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white flex items-center justify-center text-sm font-bold shadow shrink-0 mt-1">
-                        🤖
+                <div
+                  key={msg.id}
+                  className={`flex items-start gap-2 ${msg.sender === "user" ? "flex-row-reverse" : "flex-row"}`}
+                >
+                  {/* Sender Avatar */}
+                  <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-sky-200 shadow-xs mt-0.5">
+                    {msg.sender === "bot" ? (
+                      <img src={SUDAN_BOT_AVATAR} alt="Bot" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-sky-500 text-white flex items-center justify-center font-bold text-xs">
+                        Me
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Message Bubble */}
+                  <div
+                    className={`max-w-[82%] rounded-2xl p-3 shadow-xs text-xs sm:text-[13px] leading-relaxed select-text ${
+                      msg.sender === "user"
+                        ? "bg-gradient-to-r from-sky-600 to-indigo-600 text-white rounded-tr-none"
+                        : "bg-white text-slate-800 border border-slate-200/80 rounded-tl-none"
+                    }`}
+                  >
+                    {/* Attached Image if any */}
+                    {msg.image && (
+                      <div className="mb-2 rounded-xl overflow-hidden border border-white/20 shadow-sm max-h-48">
+                        <img src={msg.image} alt="User submission" className="w-full h-full object-cover" />
                       </div>
                     )}
 
-                    {/* Speech bubble */}
-                    <div className={`max-w-[82%] p-3.5 rounded-[22px] text-xs sm:text-sm font-medium leading-relaxed shadow-sm border ${
-                      msg.sender === "user" 
-                        ? "bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-tr-none border-indigo-600" 
-                        : "bg-white text-slate-800 rounded-tl-none border-slate-100"
-                    }`}>
-                      {/* Formatted body text supporting markdown bullets and bold labels */}
-                      <div className="space-y-1.5 whitespace-pre-wrap text-left select-all">
-                        {msg.text.split("\n").map((line, lIdx) => {
-                          if (line.trim().startsWith("•") || line.trim().startsWith("*")) {
-                            return (
-                              <div key={lIdx} className="flex gap-1.5 pl-2">
-                                <span className="text-indigo-500 font-bold">•</span>
-                                <span className="flex-1">{line.replace(/^[•*]\s*/, "")}</span>
-                              </div>
-                            );
-                          }
-                          
-                          // Handle simple bold parsing `**text**` and code text `*text*`
-                          const parts = line.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`)/);
-                          return (
-                            <p key={lIdx}>
-                              {parts.map((part, pIdx) => {
-                                if (part.startsWith("**") && part.endsWith("**")) {
-                                  return <strong key={pIdx} className="font-extrabold text-indigo-950 underline">{part.slice(2, -2)}</strong>;
-                                }
-                                if (part.startsWith("*") && part.endsWith("*")) {
-                                  return <em key={pIdx} className="font-black italic text-slate-900 bg-amber-50 px-1 rounded">{part.slice(1, -1)}</em>;
-                                }
-                                if (part.startsWith("`") && part.endsWith("`")) {
-                                  return <code key={pIdx} className="font-mono text-[11px] bg-slate-100 border border-slate-200 px-1 py-0.5 rounded text-rose-600 font-bold select-all">{part.slice(1, -1)}</code>;
-                                }
-                                return part;
-                              })}
-                            </p>
-                          );
-                        })}
-                      </div>
-
-                      {/* Footer time and manual speech trigger */}
-                      <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-slate-100 text-[9px] font-bold text-slate-400">
-                        <span>{msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                        {msg.sender === "bot" && (
-                          <button
-                            onClick={() => speakBotResponse(msg.text, msg.result?.voiceText)}
-                            className="p-1 rounded bg-slate-50 hover:bg-slate-100 text-indigo-600 flex items-center gap-1 transition-all"
-                            title="Listen to response"
-                          >
-                            <Volume2 className="w-3 h-3" />
-                            <span>Listen</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 3. Rich Curriculum Result Cards */}
-                  {msg.result && (
-                    <div className="ml-10 space-y-2.5 animate-fadeIn">
-                      {/* Matched Words Details */}
-                      {msg.result.matchedWords.map((word) => (
-                        <div key={word.id} className="bg-indigo-50/60 p-3 rounded-2xl border border-indigo-200/60 shadow-sm space-y-1.5 text-left">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xl">{word.image}</span>
-                            <span className="bg-indigo-100 text-indigo-800 text-[10px] font-black px-2.5 py-0.5 rounded-full">Syllabus Dictionary 📖</span>
-                          </div>
-                          <h4 className="font-black text-sm text-indigo-950">
-                            {word.word} = <span className="text-indigo-600 font-bold">{word.arabic}</span>
-                          </h4>
-                          <p className="text-xs text-slate-400 font-bold italic">Example Sentence:</p>
-                          <p className="text-[11px] sm:text-xs text-slate-700 bg-white p-2 rounded-xl border border-slate-100 leading-normal font-bold">
-                            "{word.example}"
-                          </p>
-                          <div className="flex justify-start gap-1.5 pt-1">
-                            <button
-                              onClick={() => speakText(word.word)}
-                              className="text-[10px] font-extrabold text-indigo-700 bg-white hover:bg-indigo-100 px-3 py-1 rounded-lg border border-indigo-200 flex items-center gap-1 transition-all"
-                            >
-                              <Volume2 className="w-3 h-3" />
-                              <span>Pronounce Word</span>
-                            </button>
-                            <button
-                              onClick={() => speakText(word.example)}
-                              className="text-[10px] font-extrabold text-indigo-700 bg-white hover:bg-indigo-100 px-3 py-1 rounded-lg border border-indigo-200 flex items-center gap-1 transition-all"
-                            >
-                              <Volume2 className="w-3 h-3" />
-                              <span>Pronounce Sentence</span>
-                            </button>
-                          </div>
-                        </div>
+                    {/* Message Text with simple bold parser */}
+                    <div className="whitespace-pre-wrap font-medium">
+                      {msg.text.split("\n").map((line, i) => (
+                        <p key={i} className={i > 0 ? "mt-1.5" : ""}>
+                          {line}
+                        </p>
                       ))}
+                    </div>
 
-                      {/* Matched Lessons Navigation Buttons */}
-                      {msg.result.matchedLessons.map(({ lesson, unitId }) => (
+                    {/* YouTube Video Recommendation if provided */}
+                    {msg.media && msg.media.embed_url && (
+                      <div className="mt-2.5 rounded-xl overflow-hidden border border-sky-200 bg-sky-50 p-2 text-left">
+                        <p className="text-[11px] font-bold text-sky-800 mb-1 flex items-center gap-1">
+                          🎬 {msg.media.title}
+                        </p>
+                        <iframe
+                          src={msg.media.embed_url}
+                          title={msg.media.title}
+                          className="w-full aspect-video rounded-lg"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    )}
+
+                    {/* Lesson jump button if matching curriculum */}
+                    {msg.result && msg.result.lesson && onSelectLesson && (
+                      <button
+                        onClick={() => onSelectLesson(msg.result!.lesson!, msg.result!.unitId || 1)}
+                        className="mt-2.5 bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-sm transition-all"
+                      >
+                        <BookOpen className="w-3.5 h-3.5" />
+                        <span>Open Lesson in SMILE Book</span>
+                      </button>
+                    )}
+
+                    {/* Audio read-aloud button for bot messages */}
+                    {msg.sender === "bot" && (
+                      <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+                        <span>Sudan Bot • Grade 3</span>
                         <button
-                          key={lesson.id}
-                          onClick={() => {
-                            onSelectLesson(lesson, unitId);
-                            setIsOpen(false); // Close chatbot to focus on the book page
-                          }}
-                          className="w-full text-left bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 p-3 rounded-2xl flex items-center justify-between hover:border-emerald-400 hover:bg-emerald-100/50 transition-all shadow-sm group cursor-pointer"
+                          onClick={() => speakEnglish(msg.text)}
+                          className="hover:text-sky-600 flex items-center gap-1 font-bold text-sky-700 bg-sky-50 hover:bg-sky-100 px-2 py-0.5 rounded-md transition-all"
+                          title="Listen in English"
                         >
-                          <div className="flex items-center gap-2">
-                            <span className="p-1.5 rounded-lg bg-emerald-500 text-white shrink-0 group-hover:scale-110 transition-transform">
-                              <BookOpen className="w-4 h-4" />
-                            </span>
-                            <div className="text-left">
-                              <p className="text-[10px] font-black text-emerald-800 uppercase">Click to open this lesson now</p>
-                              <h5 className="font-extrabold text-xs text-emerald-950">{lesson.title}</h5>
-                            </div>
-                          </div>
-                          <ArrowRight className="w-4 h-4 text-emerald-600 transform group-hover:translate-x-1 transition-transform" />
+                          <Volume2 className="w-3 h-3" />
+                          <span>Listen 🔊</span>
                         </button>
-                      ))}
-                    </div>
-                  )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
+
+              {isLoading && (
+                <div className="flex items-start gap-2">
+                  <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-sky-200 shadow-xs">
+                    <img src={SUDAN_BOT_AVATAR} alt="Bot" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-none p-3 shadow-xs flex items-center gap-2">
+                    <div className="flex gap-1">
+                      <span className="w-2 h-2 rounded-full bg-sky-500 animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-2 h-2 rounded-full bg-violet-500 animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </div>
+                    <span className="text-xs text-slate-500 font-bold">Sudan Bot is thinking...</span>
+                  </div>
+                </div>
+              )}
               <div ref={chatEndRef} />
             </div>
 
-            {/* Quick Suggestion Chips */}
-            {messages.length > 0 && messages[messages.length - 1].result?.suggestions && (
-              <div className="bg-white px-4 py-2 border-t border-slate-100 flex gap-2 overflow-x-auto no-scrollbar shrink-0 select-none">
-                {messages[messages.length - 1].result?.suggestions.map((sug, sIdx) => (
-                  <button
-                    key={sIdx}
-                    onClick={() => handleSearch(sug.replace(/[🧪🍎🌱🗺️]/g, "").trim())}
-                    className="shrink-0 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-600 text-[10px] sm:text-xs font-bold px-3 py-1.5 rounded-full border border-slate-200 hover:border-indigo-300 transition-all cursor-pointer whitespace-nowrap active:scale-95"
-                  >
-                    {sug}
-                  </button>
-                ))}
+            {/* Image Preview Bar before sending */}
+            {capturedImage && (
+              <div className="bg-amber-50 border-t border-amber-200 px-4 py-2 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <img src={capturedImage} alt="Preview" className="w-10 h-10 object-cover rounded-lg border border-amber-300" />
+                  <span className="font-bold text-amber-900">Photo ready to send to Sudan Bot! 📸</span>
+                </div>
+                <button
+                  onClick={() => setCapturedImage(null)}
+                  className="text-amber-800 hover:text-rose-600 font-bold"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
             )}
 
-            {/* Chat Input Bar and voice controller */}
-            <div className="p-3 bg-white border-t-2 border-slate-100 shrink-0">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSearch(query);
-                }}
-                className="flex gap-2 items-center"
+            {/* Input Bar: Camera, Mic, Text Input, Send */}
+            <div className="p-3 bg-white border-t border-slate-200/90 flex items-center gap-2 shrink-0">
+              {/* Camera Trigger */}
+              <button
+                onClick={startCamera}
+                className="p-2.5 rounded-xl bg-sky-100 hover:bg-sky-200 text-sky-700 transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95"
+                title="Scan Book or Homework with Camera"
               >
-                {/* Voice Search Microphone button */}
-                <button
-                  type="button"
-                  onClick={toggleListening}
-                  className={`p-3 rounded-2xl transition-all cursor-pointer flex items-center justify-center shrink-0 border relative ${
-                    isListening 
-                      ? "bg-red-500 text-white border-red-500 animate-pulse" 
-                      : "bg-slate-50 hover:bg-slate-100 text-slate-500 border-slate-200"
-                  }`}
-                  title={isListening ? "Listening... click to stop" : "Ask with your voice"}
-                >
-                  {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5 text-indigo-600" />}
-                  {isListening && (
-                    <span className="absolute -inset-1 rounded-2xl border-4 border-red-300 animate-ping opacity-60 pointer-events-none" />
-                  )}
-                </button>
+                <Camera className="w-4 h-4" />
+              </button>
 
-                {/* Text input box */}
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder={isListening ? "Listening... Speak now! 🎙️" : "Ask about any word or lesson..."}
-                  disabled={isListening}
-                  className="flex-1 bg-slate-50 border border-slate-200 focus:border-indigo-500 rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold focus:ring-2 focus:ring-indigo-500/20 focus:outline-none placeholder:text-slate-400 select-all"
-                />
+              {/* Voice Recognition Trigger */}
+              <button
+                onClick={toggleMic}
+                className={`p-2.5 rounded-xl transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95 ${
+                  isListening
+                    ? "bg-rose-500 text-white animate-pulse"
+                    : "bg-indigo-100 hover:bg-indigo-200 text-indigo-700"
+                }`}
+                title={isListening ? "Listening... click to stop" : "Speak in English"}
+              >
+                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              </button>
 
-                {/* Submit button */}
-                <button
-                  type="submit"
-                  disabled={!query.trim()}
-                  className={`p-3 rounded-2xl flex items-center justify-center shrink-0 transition-all ${
-                    query.trim() 
-                      ? "bg-indigo-600 text-white hover:bg-indigo-700 hover:scale-105 cursor-pointer shadow-md" 
-                      : "bg-slate-100 text-slate-300 border border-slate-200 pointer-events-none"
-                  }`}
-                >
-                  <Send className="w-5 h-5" />
-                </button>
-              </form>
-              <div className="text-[9px] text-center text-slate-400 font-bold mt-1.5">
-                {speechSupported 
-                  ? "💡 Click the mic to search or ask questions using your voice!" 
-                  : "💡 Voice search is not supported by your current browser, but you can type!"}
+              {/* Text Input */}
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                  }
+                }}
+                placeholder="Ask in English (e.g. What is apple?)..."
+                className="flex-1 bg-slate-100 hover:bg-slate-50 focus:bg-white text-slate-800 text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-sky-500 focus:outline-none transition-all"
+              />
+
+              {/* Send Button */}
+              <button
+                onClick={() => sendMessage()}
+                disabled={isLoading || (!query.trim() && !capturedImage)}
+                className="p-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-md hover:scale-105 active:scale-95 cursor-pointer"
+                title="Send Message"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 3. Direct Live Call Modal Interface (الاتصال المباشر) */}
+      <AnimatePresence>
+        {isLiveCallActive && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 font-sans select-none"
+            style={{ direction: "ltr" }}
+          >
+            <motion.div
+              initial={{ scale: 0.85, y: 30 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.85, y: 30 }}
+              className="w-full max-w-lg bg-gradient-to-b from-slate-900 via-sky-950 to-indigo-950 border-2 border-sky-400/60 rounded-[36px] p-6 shadow-[0_25px_70px_rgba(3,105,161,0.5)] flex flex-col items-center text-white relative overflow-hidden"
+            >
+              {/* Call Header */}
+              <div className="w-full flex items-center justify-between pb-4 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs font-black tracking-wider text-emerald-300 uppercase">
+                    Live Audio Call • مكالمة مباشرة
+                  </span>
+                </div>
+                <div className="text-xs font-mono font-bold bg-white/10 px-3 py-1 rounded-full border border-white/20">
+                  ⏱️ {formatTimer(callDuration)}
+                </div>
               </div>
+
+              {/* Animated Mascot Avatar Area */}
+              <div className="my-8 relative flex flex-col items-center justify-center">
+                {/* Expanding Glowing Waves */}
+                <div className={`absolute w-44 h-44 sm:w-56 sm:h-56 rounded-full bg-sky-500/20 blur-xl ${isBotSpeaking ? "animate-ping scale-110" : ""}`} />
+                <div className={`absolute w-36 h-36 sm:w-48 sm:h-48 rounded-full border-2 border-sky-400/40 ${isBotSpeaking ? "animate-pulse scale-105" : ""}`} />
+
+                {/* Sudan Bot Avatar Image */}
+                <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full bg-gradient-to-tr from-sky-400/20 to-indigo-500/20 p-2 border-4 border-sky-400 shadow-[0_0_40px_rgba(56,189,248,0.5)] flex items-center justify-center overflow-hidden">
+                  <img
+                    src={SUDAN_BOT_AVATAR}
+                    alt="Sudan Bot Live"
+                    className={`w-full h-full object-contain ${isBotSpeaking ? "animate-bounce" : "hover:scale-105 transition-transform"}`}
+                  />
+                </div>
+
+                {/* Sound wave visualizer bars */}
+                <div className="mt-5 flex items-center gap-1.5 h-6">
+                  {[...Array(9)].map((_, i) => (
+                    <span
+                      key={i}
+                      className={`w-1 bg-gradient-to-t from-sky-400 to-indigo-300 rounded-full transition-all duration-150 ${
+                        isBotSpeaking || isListening
+                          ? "h-5 animate-pulse"
+                          : "h-1.5 opacity-40"
+                      }`}
+                      style={{ animationDelay: `${i * 100}ms` }}
+                    />
+                  ))}
+                </div>
+
+                <h3 className="text-lg sm:text-xl font-black mt-3 flex items-center gap-2">
+                  Sudan Bot
+                  <span className="text-xs bg-sky-500 text-white font-bold px-2 py-0.5 rounded-full">
+                    Naqla English
+                  </span>
+                </h3>
+              </div>
+
+              {/* Live Subtitle / Speech Bubble */}
+              <div className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 min-h-[90px] flex items-center justify-center text-center mb-6">
+                <p className="text-xs sm:text-sm font-medium text-sky-100 italic leading-relaxed">
+                  {callSubtitle}
+                </p>
+              </div>
+
+              {/* Live Call Control Actions */}
+              <div className="flex items-center gap-4">
+                {/* Mute / Unmute */}
+                <button
+                  onClick={() => setIsMuted(!isMuted)}
+                  className={`p-4 rounded-full border-2 transition-all cursor-pointer shadow-lg hover:scale-110 ${
+                    isMuted
+                      ? "bg-rose-600 border-rose-400 text-white"
+                      : "bg-white/10 hover:bg-white/20 border-white/30 text-white"
+                  }`}
+                  title={isMuted ? "Unmute Microphone" : "Mute Microphone"}
+                >
+                  {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+                </button>
+
+                {/* End Call Button */}
+                <button
+                  onClick={toggleLiveCall}
+                  className="bg-rose-600 hover:bg-rose-700 text-white font-black text-sm px-6 py-4 rounded-full shadow-[0_10px_25px_rgba(225,29,72,0.5)] border-2 border-rose-400 flex items-center gap-2 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                  title="End Live Call"
+                >
+                  <PhoneOff className="w-5 h-5" />
+                  <span>End Call</span>
+                </button>
+
+                {/* Open Camera in Call */}
+                <button
+                  onClick={() => {
+                    toggleLiveCall();
+                    startCamera();
+                  }}
+                  className="p-4 rounded-full bg-white/10 hover:bg-white/20 border-2 border-white/30 text-white transition-all cursor-pointer shadow-lg hover:scale-110"
+                  title="Show Camera to Sudan Bot"
+                >
+                  <Camera className="w-6 h-6" />
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 4. Interactive Camera Viewport & Capture Modal */}
+      <AnimatePresence>
+        {isCameraOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-between p-4 sm:p-6"
+            style={{ direction: "ltr" }}
+          >
+            {/* Camera Top Bar */}
+            <div className="w-full max-w-md flex items-center justify-between text-white">
+              <div className="flex items-center gap-2">
+                <Camera className="w-5 h-5 text-sky-400" />
+                <span className="text-sm font-bold">Show Your Book or Homework</span>
+              </div>
+              <button
+                onClick={stopCamera}
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Video Viewfinder */}
+            <div className="relative w-full max-w-md aspect-3/4 sm:aspect-square bg-slate-900 rounded-3xl overflow-hidden border-2 border-sky-400/50 shadow-2xl flex items-center justify-center">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                className="w-full h-full object-cover"
+              />
+              {/* Framing target guideline */}
+              <div className="absolute inset-8 border-2 border-dashed border-white/40 rounded-2xl pointer-events-none flex items-end justify-center p-3">
+                <span className="bg-black/60 text-white text-[11px] font-bold px-3 py-1 rounded-full backdrop-blur-xs">
+                  Place textbook page or word here
+                </span>
+              </div>
+            </div>
+
+            {/* Camera Bottom Controls */}
+            <div className="w-full max-w-md flex items-center justify-around py-4">
+              {/* Upload file fallback */}
+              <label className="p-3.5 rounded-full bg-white/15 hover:bg-white/25 text-white cursor-pointer transition-all">
+                <Upload className="w-5 h-5" />
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </label>
+
+              {/* Shutter Button */}
+              <button
+                onClick={takePhoto}
+                className="w-16 h-16 rounded-full bg-white border-4 border-sky-500 shadow-[0_0_25px_rgba(56,189,248,0.8)] flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
+                title="Capture Photo"
+              >
+                <div className="w-12 h-12 rounded-full bg-sky-500" />
+              </button>
+
+              {/* Cancel Button */}
+              <button
+                onClick={stopCamera}
+                className="p-3.5 rounded-full bg-white/15 hover:bg-white/25 text-white cursor-pointer transition-all"
+                title="Cancel"
+              >
+                <CameraOff className="w-5 h-5" />
+              </button>
             </div>
           </motion.div>
         )}
