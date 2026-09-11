@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { 
   MessageCircle, 
   X, 
@@ -60,6 +60,8 @@ interface ChatMessage {
   timestamp: Date;
 }
 
+type CallStatus = "idle" | "connecting" | "listening" | "speaking" | "thinking";
+
 const GRADE_3_QUICK_PROMPTS = [
   { label: "🔤 Phonics & ABCs", query: "Can we practice Phonics and letter sounds?" },
   { label: "🎨 Colors & Numbers", query: "Teach me colors and numbers from 1 to 20!" },
@@ -102,6 +104,8 @@ export default function SmartSearchBot({
   const [isUserTalking, setIsUserTalking] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [userMicLevel, setUserMicLevel] = useState(0);
+  const [callStatus, setCallStatusState] = useState<CallStatus>("idle");
+  const [isProcessingCall, setIsProcessingCall] = useState(false);
 
   // Camera & vision state
   const [isCameraOpen, setIsCameraOpen] = useState(false);
@@ -111,6 +115,8 @@ export default function SmartSearchBot({
   // Connection endpoint resolution state
   const [resolvedEndpoint, setResolvedEndpoint] = useState<string>(CLOUD_FALLBACK_ENDPOINT);
   const [isLocalConnected, setIsLocalConnected] = useState(false);
+  // Resolved TTS base URL (local server or same-origin dev server)
+  const [ttsBaseUrl, setTtsBaseUrl] = useState<string>("");
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -128,6 +134,15 @@ export default function SmartSearchBot({
   const currentAccumulatedTranscript = useRef<string>("");
   const isBotSpeakingRef = useRef<boolean>(false);
   const isCallActiveRef = useRef<boolean>(false);
+  const isProcessingCallRef = useRef<boolean>(false);
+  const isMutedRef = useRef<boolean>(false);
+
+  // Server-side TTS Audio element for high-fidelity playback
+  const serverAudioRef = useRef<HTMLAudioElement | null>(null);
+  // Keep-alive timer for resilient speech recognition restart
+  const keepAliveTimerRef = useRef<any>(null);
+  // Dynamic VU meter bar heights
+  const [vuBars, setVuBars] = useState<number[]>(new Array(9).fill(2));
 
   // Keep refs in sync with state for instantaneous event callbacks
   useEffect(() => {
@@ -138,15 +153,24 @@ export default function SmartSearchBot({
     isCallActiveRef.current = isLiveCallActive;
   }, [isLiveCallActive]);
 
+  useEffect(() => {
+    isProcessingCallRef.current = isProcessingCall;
+  }, [isProcessingCall]);
+
+  useEffect(() => {
+    isMutedRef.current = isMuted;
+  }, [isMuted]);
+
   // 1. Detect and resolve active local tunnel or cloud fallback
   useEffect(() => {
     let isMounted = true;
     async function resolveEndpoint() {
-      const candidates = [
+      // Check local AI arsenal server (FastAPI on 8000)
+      const mentorCandidates = [
         "http://127.0.0.1:8000/api/mentor/chat",
         "http://localhost:8000/api/mentor/chat"
       ];
-      for (const url of candidates) {
+      for (const url of mentorCandidates) {
         try {
           const controller = new AbortController();
           const tid = setTimeout(() => controller.abort(), 1200);
@@ -166,7 +190,32 @@ export default function SmartSearchBot({
         setIsLocalConnected(false);
       }
     }
+
+    // Also detect local dev server TTS (Express on 3000 or Vite proxy)
+    async function resolveTts() {
+      const ttsCandidates = [
+        "/api/tts",  // Same-origin (Vite dev proxy or production)
+        "http://localhost:3000/api/tts",
+        "http://127.0.0.1:3000/api/tts"
+      ];
+      for (const url of ttsCandidates) {
+        try {
+          const controller = new AbortController();
+          const tid = setTimeout(() => controller.abort(), 1200);
+          const res = await fetch(url + "?text=hi", { signal: controller.signal });
+          clearTimeout(tid);
+          if (res.ok && isMounted) {
+            setTtsBaseUrl(url.replace("?text=hi", ""));
+            return;
+          }
+        } catch (e) {
+          // continue
+        }
+      }
+    }
+
     resolveEndpoint();
+    resolveTts();
     return () => { isMounted = false; };
   }, []);
 
@@ -220,24 +269,65 @@ export default function SmartSearchBot({
     };
   }, [isLiveCallActive]);
 
-  // ⚡ 5. THE BARGE-IN INTERRUPTION ENGINE (مقاطعة الكلام الفورية)
-  // When the child speaks, Naqla Bot cuts off immediately and listens!
-  const triggerBargeInInterruption = () => {
+  // ═══════════════════════════════════════════════════════════════
+  // ⚡ ENHANCED LIVE CALL ENGINE — Production-Grade Architecture
+  // ═══════════════════════════════════════════════════════════════
+
+  // 🔓 AudioContext unlock for iOS/Safari (must be called on user gesture)
+  const unlockAudioContext = useCallback(() => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const ctx = new AudioCtx();
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+      gain.gain.value = 0.0001; // Silent
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.start(0);
+      oscillator.stop(ctx.currentTime + 0.05); // 50ms silent pulse
+      // Resume suspended context (iOS requirement)
+      if (ctx.state === "suspended") {
+        ctx.resume();
+      }
+      setTimeout(() => {
+        try { ctx.close(); } catch(e) {}
+      }, 200);
+    } catch(e) {
+      // AudioContext not available - graceful degradation
+    }
+  }, []);
+
+  // ⚡ Barge-In Interruption: instantly cancel bot speech when child speaks
+  const triggerBargeInInterruption = useCallback(() => {
     if (isBotSpeakingRef.current) {
-      // 1. Stop speech synthesis immediately
+      // 1. Stop server-side audio playback
+      if (serverAudioRef.current) {
+        serverAudioRef.current.pause();
+        serverAudioRef.current.currentTime = 0;
+        serverAudioRef.current = null;
+      }
+      // 2. Stop browser speech synthesis
       window.speechSynthesis.cancel();
+      // 3. Reset state
       isBotSpeakingRef.current = false;
       setIsBotSpeaking(false);
       setIsUserTalking(true);
+      setCallStatusState("listening");
       setCallSubtitle("I hear you! I'm listening... 👂✨");
-      console.log("⚡ Barge-in triggered! Naqla Bot cut off speech to listen to student.");
     }
-  };
+  }, []);
 
-  // Start Mic Volume Monitoring for instant sound-based barge-in
-  const startMicBargeInMonitor = async () => {
+  // 🎙️ Start Mic Volume Monitoring with ANTI-ECHO protection
+  const startMicBargeInMonitor = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // ✅ Fix 1: Request echo cancellation + noise suppression
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
       micStreamRef.current = stream;
 
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
@@ -247,7 +337,7 @@ export default function SmartSearchBot({
       const source = audioCtx.createMediaStreamSource(stream);
       const analyser = audioCtx.createAnalyser();
       analyser.fftSize = 256;
-      analyser.smoothingTimeConstant = 0.4;
+      analyser.smoothingTimeConstant = 0.5;
       source.connect(analyser);
       analyserRef.current = analyser;
 
@@ -256,6 +346,7 @@ export default function SmartSearchBot({
       // Check audio levels 20 times per second (every 50ms)
       bargeInCheckIntervalRef.current = setInterval(() => {
         if (!isCallActiveRef.current || !analyserRef.current) return;
+        if (isMutedRef.current) return; // Skip when muted
 
         analyserRef.current.getByteFrequencyData(dataArray);
         let sum = 0;
@@ -266,8 +357,11 @@ export default function SmartSearchBot({
         const normalizedVolume = Math.min(100, Math.round((average / 128) * 100));
         setUserMicLevel(normalizedVolume);
 
-        // Volume threshold for human speech (ambient room noise is usually < 12-15)
-        if (normalizedVolume > 18) {
+        // ✅ Fix 1: Dynamic threshold — raise to 45 when bot is speaking
+        // to prevent echo from speakers triggering interruption
+        const threshold = isBotSpeakingRef.current ? 45 : 18;
+
+        if (normalizedVolume > threshold) {
           setIsUserTalking(true);
           // If bot was speaking, cut it off NOW!
           if (isBotSpeakingRef.current) {
@@ -276,14 +370,27 @@ export default function SmartSearchBot({
         } else {
           setIsUserTalking(false);
         }
+
+        // ✅ Enhancement 10: Dynamic VU meter bars
+        if (normalizedVolume > 5) {
+          const bars = [];
+          for (let i = 0; i < 9; i++) {
+            const binIndex = Math.floor((i / 9) * dataArray.length);
+            const binValue = dataArray[binIndex] || 0;
+            bars.push(Math.max(2, Math.round((binValue / 255) * 28)));
+          }
+          setVuBars(bars);
+        } else {
+          setVuBars(new Array(9).fill(2));
+        }
       }, 50);
 
     } catch (err) {
       console.warn("Microphone barge-in monitor init error:", err);
     }
-  };
+  }, [triggerBargeInInterruption]);
 
-  const stopMicBargeInMonitor = () => {
+  const stopMicBargeInMonitor = useCallback(() => {
     if (bargeInCheckIntervalRef.current) {
       clearInterval(bargeInCheckIntervalRef.current);
       bargeInCheckIntervalRef.current = null;
@@ -297,18 +404,27 @@ export default function SmartSearchBot({
       audioContextRef.current = null;
     }
     analyserRef.current = null;
+    setVuBars(new Array(9).fill(2));
+  }, []);
+
+  // ═══════════════════════════════════════════════════════════════
+  // 🔊 HIGH-FIDELITY TTS ENGINE (Server-Side with Browser Fallback)
+  // ═══════════════════════════════════════════════════════════════
+
+  // Clean text for TTS (remove markdown, special chars)
+  const cleanTextForTTS = (text: string): string => {
+    return text
+      .replace(/[*#`_\[\]()]/g, "")
+      .replace(/\n/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
   };
 
-  // English Voice Synthesis
-  const speakEnglish = (text: string, onEndCallback?: () => void) => {
-    if (!botSoundEnabled && !isCallActiveRef.current) {
-      if (onEndCallback) onEndCallback();
-      return;
-    }
-
+  // Browser SpeechSynthesis fallback
+  const speakWithBrowserFallback = useCallback((text: string, onEndCallback?: () => void) => {
     try {
       window.speechSynthesis.cancel();
-      const clean = text.replace(/[*#`_\[\]()]/g, "").replace(/\n/g, " ").trim();
+      const clean = cleanTextForTTS(text);
       if (!clean) {
         if (onEndCallback) onEndCallback();
         return;
@@ -316,7 +432,7 @@ export default function SmartSearchBot({
 
       const utterance = new SpeechSynthesisUtterance(clean);
       utterance.lang = "en-US";
-      utterance.rate = 0.94; // Friendly, clear primary grade pace
+      utterance.rate = 0.94;
       utterance.pitch = 1.05;
 
       const voices = window.speechSynthesis.getVoices();
@@ -331,6 +447,7 @@ export default function SmartSearchBot({
       utterance.onstart = () => {
         isBotSpeakingRef.current = true;
         setIsBotSpeaking(true);
+        setCallStatusState("speaking");
       };
 
       utterance.onend = () => {
@@ -347,16 +464,103 @@ export default function SmartSearchBot({
 
       window.speechSynthesis.speak(utterance);
     } catch (e) {
-      console.warn("Speech synthesis error:", e);
+      console.warn("Browser speech synthesis error:", e);
       isBotSpeakingRef.current = false;
       setIsBotSpeaking(false);
       if (onEndCallback) onEndCallback();
     }
-  };
+  }, []);
 
-  // Setup Continuous Call Speech Recognition with Barge-in Interruption
-  const startCallRecognitionLoop = () => {
-    if (isMuted || !isCallActiveRef.current) return;
+  // ✅ Enhancement 6: Server-Side High-Fidelity TTS with fallback chain
+  const speakEnglish = useCallback((text: string, onEndCallback?: () => void) => {
+    if (!botSoundEnabled && !isCallActiveRef.current) {
+      if (onEndCallback) onEndCallback();
+      return;
+    }
+
+    const clean = cleanTextForTTS(text);
+    if (!clean) {
+      if (onEndCallback) onEndCallback();
+      return;
+    }
+
+    // ✅ Fix 2: Stop recognition BEFORE bot starts speaking (prevents echo loop)
+    if (isCallActiveRef.current && callRecognitionRef.current) {
+      try { callRecognitionRef.current.abort(); } catch(e) {}
+    }
+
+    // Mark bot as speaking
+    isBotSpeakingRef.current = true;
+    setIsBotSpeaking(true);
+    setCallStatusState("speaking");
+
+    // Callback to run after speech ends — restarts listening in call mode
+    const afterSpeechEnd = () => {
+      isBotSpeakingRef.current = false;
+      setIsBotSpeaking(false);
+      if (isCallActiveRef.current && !isMutedRef.current) {
+        setCallStatusState("listening");
+        // ✅ Fix 2: Restart recognition after bot finishes (350ms delay like reference widget)
+        setTimeout(() => {
+          if (isCallActiveRef.current && !isBotSpeakingRef.current && !isProcessingCallRef.current) {
+            startCallRecognitionLoop();
+          }
+        }, 350);
+      }
+      if (onEndCallback) onEndCallback();
+    };
+
+    // Try server-side TTS first (higher quality)
+    if (ttsBaseUrl) {
+      const ttsUrl = ttsBaseUrl + "?text=" + encodeURIComponent(clean);
+      fetch(ttsUrl)
+        .then(res => {
+          if (!res.ok) throw new Error("TTS status " + res.status);
+          return res.blob();
+        })
+        .then(blob => {
+          const blobUrl = URL.createObjectURL(blob);
+          const audio = new Audio(blobUrl);
+          serverAudioRef.current = audio;
+
+          audio.onended = () => {
+            URL.revokeObjectURL(blobUrl);
+            serverAudioRef.current = null;
+            afterSpeechEnd();
+          };
+
+          audio.onerror = () => {
+            URL.revokeObjectURL(blobUrl);
+            serverAudioRef.current = null;
+            // Fallback to browser speech
+            speakWithBrowserFallback(clean, afterSpeechEnd);
+          };
+
+          audio.play().catch(() => {
+            // Autoplay blocked — fall back to browser speech
+            URL.revokeObjectURL(blobUrl);
+            serverAudioRef.current = null;
+            speakWithBrowserFallback(clean, afterSpeechEnd);
+          });
+        })
+        .catch(() => {
+          // Network error — fall back to browser speech
+          speakWithBrowserFallback(clean, afterSpeechEnd);
+        });
+    } else {
+      // No server TTS available — use browser speech directly
+      speakWithBrowserFallback(clean, afterSpeechEnd);
+    }
+  }, [botSoundEnabled, ttsBaseUrl, speakWithBrowserFallback]);
+
+  // ═══════════════════════════════════════════════════════════════
+  // 🎤 RESILIENT CONTINUOUS LISTENING (keepalive pattern from mentor-widget.js)
+  // ═══════════════════════════════════════════════════════════════
+
+  const startCallRecognitionLoop = useCallback(() => {
+    // ✅ Enhancement 11: Triple guard prevents race conditions
+    if (isMutedRef.current || !isCallActiveRef.current || isBotSpeakingRef.current || isProcessingCallRef.current) return;
+
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) return;
 
@@ -364,10 +568,14 @@ export default function SmartSearchBot({
       if (callRecognitionRef.current) {
         try { callRecognitionRef.current.abort(); } catch(e) {}
       }
+
       const rec = new SpeechRecognition();
-      rec.continuous = true;
+      // ✅ Fix 3: Use continuous=false with keepalive restart (more stable across browsers)
+      rec.continuous = false;
       rec.interimResults = true;
       rec.lang = "en-US";
+
+      let hasReceivedFinal = false;
 
       rec.onsoundstart = () => {
         // Child started making sound: immediately interrupt bot if speaking!
@@ -375,12 +583,13 @@ export default function SmartSearchBot({
       };
 
       rec.onspeechstart = () => {
-        // Child started speech: immediately interrupt bot if speaking!
         triggerBargeInInterruption();
+        setIsUserTalking(true);
+        setCallStatusState("listening");
       };
 
       rec.onresult = (event: any) => {
-        // As soon as any word or interim syllable is detected: interrupt bot!
+        // As soon as any word is detected: interrupt bot!
         triggerBargeInInterruption();
 
         let interimText = "";
@@ -394,48 +603,84 @@ export default function SmartSearchBot({
           }
         }
 
+        // Show live transcript
         const activeDisplay = finalText || interimText;
         if (activeDisplay) {
           setCallSubtitle(`"${activeDisplay}"`);
-          currentAccumulatedTranscript.current = (currentAccumulatedTranscript.current + " " + activeDisplay).trim();
         }
 
-        // If final sentence delivered, or pause detected: trigger response
-        if (finalText) {
+        // ✅ Fix 4: Only accumulate FINAL transcripts, not interim ones
+        if (finalText.trim()) {
+          currentAccumulatedTranscript.current = (currentAccumulatedTranscript.current + " " + finalText.trim()).trim();
+          hasReceivedFinal = true;
+
+          // Debounce: wait 700ms of silence after final result before sending
           if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
           silenceTimerRef.current = setTimeout(() => {
             const toSend = currentAccumulatedTranscript.current;
             currentAccumulatedTranscript.current = "";
-            sendCallMessage(toSend);
+            if (toSend.trim()) {
+              sendCallMessage(toSend.trim());
+            }
           }, 700);
         }
       };
 
       rec.onerror = (e: any) => {
-        if (isCallActiveRef.current && !isBotSpeakingRef.current) {
-          setTimeout(startCallRecognitionLoop, 1200);
+        // ✅ Fix 3: Resilient keepalive restart on error
+        if (isCallActiveRef.current && !isBotSpeakingRef.current && !isProcessingCallRef.current) {
+          if (e.error === "no-speech") {
+            setCallSubtitle("Naqla Bot is waiting for you... Speak anytime! 🎙️");
+            setCallStatusState("listening");
+          }
+          if (keepAliveTimerRef.current) clearTimeout(keepAliveTimerRef.current);
+          keepAliveTimerRef.current = setTimeout(() => {
+            if (isCallActiveRef.current && !isBotSpeakingRef.current && !isProcessingCallRef.current) {
+              startCallRecognitionLoop();
+            }
+          }, 500);
         }
       };
 
       rec.onend = () => {
-        if (isCallActiveRef.current && !isLoading) {
-          // Restart recognition to stay live
-          setTimeout(startCallRecognitionLoop, 350);
+        setIsUserTalking(false);
+        // ✅ Fix 3: Resilient keepalive — restart if call is active and no final was captured
+        if (isCallActiveRef.current && !isBotSpeakingRef.current && !isProcessingCallRef.current && !hasReceivedFinal) {
+          if (keepAliveTimerRef.current) clearTimeout(keepAliveTimerRef.current);
+          keepAliveTimerRef.current = setTimeout(() => {
+            if (isCallActiveRef.current && !isBotSpeakingRef.current && !isProcessingCallRef.current) {
+              startCallRecognitionLoop();
+            }
+          }, 400);
         }
       };
 
       callRecognitionRef.current = rec;
       rec.start();
+      setCallStatusState("listening");
+      setCallSubtitle("Naqla Bot is listening... Speak in English! 🎙️");
     } catch (e) {
       console.warn("Call recognition start error:", e);
+      if (isCallActiveRef.current && !isBotSpeakingRef.current) {
+        setTimeout(() => startCallRecognitionLoop(), 800);
+      }
     }
-  };
+  }, [triggerBargeInInterruption]);
 
   // Send message during Live Call
-  const sendCallMessage = async (userText: string) => {
-    if (!userText.trim()) return;
+  const sendCallMessage = useCallback(async (userText: string) => {
+    if (!userText.trim() || isProcessingCallRef.current) return; // ✅ Enhancement 11: Guard
+
+    setIsProcessingCall(true);
+    isProcessingCallRef.current = true;
     setIsLoading(true);
+    setCallStatusState("thinking");
     setCallSubtitle("Naqla Bot is thinking... 🤖💭");
+
+    // ✅ Fix 2: Stop recognition while processing
+    if (callRecognitionRef.current) {
+      try { callRecognitionRef.current.abort(); } catch(e) {}
+    }
 
     const userMsg: ChatMessage = {
       id: Math.random().toString(),
@@ -478,9 +723,9 @@ export default function SmartSearchBot({
         timestamp: new Date()
       };
       setMessages(prev => [...prev, botMsg]);
-      setCallSubtitle(replyText);
+      setCallSubtitle(replyText.length > 120 ? replyText.slice(0, 120) + "..." : replyText);
 
-      // Speak response aloud — but child can interrupt at any moment!
+      // Speak response aloud — speakEnglish will handle recognition restart after speech ends
       speakEnglish(replyText);
     } catch (err) {
       const fallbackMsg = "Superstar! Let's practice saying: Hello Naqla Bot!";
@@ -488,34 +733,93 @@ export default function SmartSearchBot({
       speakEnglish(fallbackMsg);
     } finally {
       setIsLoading(false);
+      setIsProcessingCall(false);
+      isProcessingCallRef.current = false;
     }
-  };
+  }, [resolvedEndpoint, messages, speakEnglish]);
 
   // Toggle Live Audio Call
-  const toggleLiveCall = () => {
+  const toggleLiveCall = useCallback(() => {
     if (isLiveCallActive) {
-      // Hang up
+      // ═══ HANG UP ═══
       setIsLiveCallActive(false);
+      setCallStatusState("idle");
+      // Stop all audio
+      if (serverAudioRef.current) {
+        serverAudioRef.current.pause();
+        serverAudioRef.current.currentTime = 0;
+        serverAudioRef.current = null;
+      }
       window.speechSynthesis.cancel();
       isBotSpeakingRef.current = false;
       setIsBotSpeaking(false);
+      setIsProcessingCall(false);
+      isProcessingCallRef.current = false;
+      // Stop mic monitoring
       stopMicBargeInMonitor();
+      // Stop recognition
       if (callRecognitionRef.current) {
         try { callRecognitionRef.current.abort(); } catch(e) {}
       }
+      if (keepAliveTimerRef.current) {
+        clearTimeout(keepAliveTimerRef.current);
+        keepAliveTimerRef.current = null;
+      }
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+      currentAccumulatedTranscript.current = "";
     } else {
-      // Answer / Start Call
+      // ═══ ANSWER / START CALL ═══
+      // ✅ Enhancement 7: Unlock AudioContext on user gesture (iOS/Safari)
+      unlockAudioContext();
+
       window.speechSynthesis.cancel();
       setIsLiveCallActive(true);
+      setCallStatusState("connecting");
+      setCallSubtitle("Connecting to Naqla Bot... 📞");
+
+      // Start mic barge-in monitor
       startMicBargeInMonitor();
-      const greeting = "Hello! I am Naqla Bot! I can hear you clearly. You can speak to me or interrupt me anytime!";
+
+      // Greet the child — recognition starts ONLY after greeting finishes
+      const greeting = "Hello! I am Naqla Bot, your English teacher! I can hear you clearly. You can speak to me or interrupt me anytime!";
       setCallSubtitle(greeting);
-      speakEnglish(greeting, () => {
-        setTimeout(startCallRecognitionLoop, 200);
-      });
-      startCallRecognitionLoop();
+
+      // ✅ Fix 5: Single call path — speakEnglish callback will start recognition after greeting ends
+      speakEnglish(greeting);
     }
-  };
+  }, [isLiveCallActive, unlockAudioContext, startMicBargeInMonitor, stopMicBargeInMonitor, speakEnglish]);
+
+  // ✅ Enhancement 8: Real mute — actually stop/restart mic and recognition
+  const toggleMuteInCall = useCallback(() => {
+    const newMuted = !isMuted;
+    setIsMuted(newMuted);
+    isMutedRef.current = newMuted;
+
+    if (newMuted) {
+      // Actually mute: stop recognition and mic tracks
+      if (callRecognitionRef.current) {
+        try { callRecognitionRef.current.abort(); } catch(e) {}
+      }
+      if (keepAliveTimerRef.current) {
+        clearTimeout(keepAliveTimerRef.current);
+        keepAliveTimerRef.current = null;
+      }
+      setCallSubtitle("Microphone muted 🔇 Tap to unmute");
+      setCallStatusState("idle");
+      setIsUserTalking(false);
+      setVuBars(new Array(9).fill(2));
+    } else {
+      // Unmute: restart recognition
+      if (isCallActiveRef.current && !isBotSpeakingRef.current && !isProcessingCallRef.current) {
+        setCallSubtitle("Unmuted! Speak to Naqla Bot! 🎙️");
+        setCallStatusState("listening");
+        startCallRecognitionLoop();
+      }
+    }
+  }, [isMuted, startCallRecognitionLoop]);
 
   // Send message in regular chat
   const sendMessage = async (textToSend?: string) => {
@@ -703,6 +1007,19 @@ export default function SmartSearchBot({
     return `${m}:${s}`;
   };
 
+  // ✅ Enhancement 9: Status-aware label and color
+  const getCallStatusLabel = () => {
+    switch (callStatus) {
+      case "connecting": return { text: "Connecting...", color: "text-amber-300" };
+      case "listening": return { text: "Listening to you...", color: "text-emerald-300" };
+      case "speaking": return { text: "Naqla Bot is speaking...", color: "text-sky-300" };
+      case "thinking": return { text: "Thinking...", color: "text-violet-300" };
+      default: return { text: "Live Audio Call", color: "text-emerald-300" };
+    }
+  };
+
+  const statusInfo = getCallStatusLabel();
+
   return (
     <div className="no-print relative z-50">
       {/* 
@@ -794,7 +1111,13 @@ export default function SmartSearchBot({
                   onClick={() => {
                     const nextState = !botSoundEnabled;
                     setBotSoundEnabled(nextState);
-                    if (!nextState) window.speechSynthesis.cancel();
+                    if (!nextState) {
+                      window.speechSynthesis.cancel();
+                      if (serverAudioRef.current) {
+                        serverAudioRef.current.pause();
+                        serverAudioRef.current = null;
+                      }
+                    }
                   }}
                   className={`p-2 rounded-xl transition-all ${botSoundEnabled ? "bg-white/15 text-white hover:bg-white/25" : "bg-rose-500/40 text-rose-100"}`}
                   title={botSoundEnabled ? "Mute English Voice" : "Enable English Voice"}
@@ -1003,7 +1326,8 @@ export default function SmartSearchBot({
       </AnimatePresence>
 
       {/* 
-        3. Direct Live Call Modal Interface (الاتصال المباشر مع مقاطعة الكلام الفورية Barge-in)
+        3. Direct Live Call Modal Interface — ENHANCED
+        Features: Server-side TTS, Anti-Echo, Real Mute, VU Meter, Visual States
       */}
       <AnimatePresence>
         {isLiveCallActive && (
@@ -1020,12 +1344,18 @@ export default function SmartSearchBot({
               exit={{ scale: 0.85, y: 30 }}
               className="w-full max-w-lg bg-gradient-to-b from-slate-900 via-sky-950 to-indigo-950 border-2 border-sky-400/60 rounded-[36px] p-6 shadow-[0_25px_70px_rgba(3,105,161,0.5)] flex flex-col items-center text-white relative overflow-hidden"
             >
-              {/* Call Header */}
+              {/* Call Header — ✅ Enhancement 9: Status-aware */}
               <div className="w-full flex items-center justify-between pb-4 border-b border-white/10">
                 <div className="flex items-center gap-2">
-                  <span className={`w-3 h-3 rounded-full ${isUserTalking ? "bg-amber-400 animate-ping" : "bg-emerald-400 animate-pulse"}`} />
-                  <span className="text-xs font-black tracking-wider text-emerald-300 uppercase flex items-center gap-1.5">
-                    Live Audio Call • مكالمة مباشرة
+                  <span className={`w-3 h-3 rounded-full ${
+                    callStatus === "speaking" ? "bg-sky-400 animate-pulse" :
+                    callStatus === "listening" ? "bg-emerald-400 animate-pulse" :
+                    callStatus === "thinking" ? "bg-violet-400 animate-ping" :
+                    isUserTalking ? "bg-amber-400 animate-ping" : 
+                    "bg-emerald-400 animate-pulse"
+                  }`} />
+                  <span className={`text-xs font-black tracking-wider uppercase flex items-center gap-1.5 ${statusInfo.color}`}>
+                    {statusInfo.text} • مكالمة مباشرة
                   </span>
                 </div>
                 <div className="text-xs font-mono font-bold bg-white/10 px-3 py-1 rounded-full border border-white/20">
@@ -1039,34 +1369,65 @@ export default function SmartSearchBot({
                 <span>Real-Time Interruption: Speak anytime to cut off Naqla Bot!</span>
               </div>
 
-              {/* Animated Mascot Avatar Area */}
+              {/* Animated Mascot Avatar Area — ✅ Enhancement 9: State-aware animations */}
               <div className="my-6 relative flex flex-col items-center justify-center">
-                {/* Expanding Glowing Waves */}
-                <div className={`absolute w-44 h-44 sm:w-56 sm:h-56 rounded-full bg-sky-500/20 blur-xl ${isBotSpeaking ? "animate-ping scale-110" : ""}`} />
-                <div className={`absolute w-36 h-36 sm:w-48 sm:h-48 rounded-full border-2 border-sky-400/40 ${isBotSpeaking ? "animate-pulse scale-105" : ""}`} />
+                {/* Expanding Glowing Waves — respond to call status */}
+                <div className={`absolute w-44 h-44 sm:w-56 sm:h-56 rounded-full blur-xl transition-all duration-500 ${
+                  callStatus === "speaking" ? "bg-sky-500/30 animate-ping scale-110" :
+                  callStatus === "thinking" ? "bg-violet-500/25 animate-pulse scale-105" :
+                  callStatus === "listening" ? "bg-emerald-500/20 scale-100" :
+                  "bg-sky-500/10 scale-95"
+                }`} />
+                <div className={`absolute w-36 h-36 sm:w-48 sm:h-48 rounded-full border-2 transition-all duration-500 ${
+                  callStatus === "speaking" ? "border-sky-400/60 animate-pulse scale-105" :
+                  callStatus === "thinking" ? "border-violet-400/50 animate-spin" :
+                  callStatus === "listening" ? "border-emerald-400/40 scale-100" :
+                  "border-white/20 scale-95"
+                }`} style={callStatus === "thinking" ? { animationDuration: "3s" } : {}} />
 
                 {/* Naqla Bot Avatar Image */}
-                <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full bg-gradient-to-tr from-sky-400/20 to-indigo-500/20 p-2 border-4 border-sky-400 shadow-[0_0_40px_rgba(56,189,248,0.5)] flex items-center justify-center overflow-hidden">
+                <div className={`relative w-32 h-32 sm:w-40 sm:h-40 rounded-full p-2 border-4 shadow-[0_0_40px_rgba(56,189,248,0.5)] flex items-center justify-center overflow-hidden transition-all duration-300 ${
+                  callStatus === "speaking" ? "bg-gradient-to-tr from-sky-400/20 to-indigo-500/20 border-sky-400" :
+                  callStatus === "thinking" ? "bg-gradient-to-tr from-violet-400/20 to-purple-500/20 border-violet-400" :
+                  callStatus === "listening" ? "bg-gradient-to-tr from-emerald-400/20 to-teal-500/20 border-emerald-400" :
+                  "bg-gradient-to-tr from-slate-400/20 to-slate-500/20 border-white/40"
+                }`}>
                   <img
                     src={NAQLA_BOT_AVATAR}
                     alt="Naqla Bot Live"
-                    className={`w-full h-full object-contain ${isBotSpeaking ? "animate-bounce" : "hover:scale-105 transition-transform"}`}
+                    className={`w-full h-full object-contain transition-transform duration-300 ${
+                      callStatus === "speaking" ? "animate-bounce" :
+                      callStatus === "thinking" ? "scale-95 opacity-80" :
+                      "hover:scale-105"
+                    }`}
                   />
                 </div>
 
-                {/* Sound wave visualizer bars - dynamically reflects both bot and pupil speech */}
-                <div className="mt-5 flex items-center gap-1.5 h-6">
-                  {[...Array(9)].map((_, i) => (
+                {/* ✅ Enhancement 10: Dynamic VU Meter Sound Bars */}
+                <div className="mt-5 flex items-center gap-1.5 h-8">
+                  {vuBars.map((height, i) => (
                     <span
                       key={i}
-                      className={`w-1 rounded-full transition-all duration-100 ${
+                      className={`w-1.5 rounded-full transition-all duration-75 ${
                         isUserTalking
-                          ? "bg-amber-400 h-6 scale-110 animate-pulse"
-                          : isBotSpeaking
-                          ? "bg-sky-400 h-5 animate-pulse"
-                          : "bg-slate-600 h-1.5 opacity-40"
+                          ? "bg-amber-400"
+                          : callStatus === "speaking"
+                          ? "bg-sky-400"
+                          : callStatus === "thinking"
+                          ? "bg-violet-400"
+                          : "bg-slate-600 opacity-40"
                       }`}
-                      style={{ animationDelay: `${i * 90}ms` }}
+                      style={{ 
+                        height: `${callStatus === "speaking" 
+                          ? Math.max(4, Math.floor(Math.random() * 24) + 4)
+                          : isUserTalking 
+                          ? height 
+                          : callStatus === "thinking"
+                          ? Math.max(3, Math.floor(Math.sin(Date.now() / 300 + i) * 8) + 10)
+                          : height
+                        }px`,
+                        animationDelay: `${i * 90}ms`
+                      }}
                     />
                   ))}
                 </div>
@@ -1079,8 +1440,13 @@ export default function SmartSearchBot({
                 </h3>
               </div>
 
-              {/* Live Subtitle / Speech Bubble */}
-              <div className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 min-h-[90px] flex items-center justify-center text-center mb-6">
+              {/* Live Subtitle / Speech Bubble — ✅ Enhanced with status-aware border */}
+              <div className={`w-full backdrop-blur-sm border rounded-2xl p-4 min-h-[90px] flex items-center justify-center text-center mb-6 transition-all duration-300 ${
+                callStatus === "speaking" ? "bg-sky-500/10 border-sky-400/30" :
+                callStatus === "thinking" ? "bg-violet-500/10 border-violet-400/30" :
+                callStatus === "listening" ? "bg-emerald-500/10 border-emerald-400/30" :
+                "bg-white/10 border-white/20"
+              }`}>
                 <p className="text-xs sm:text-sm font-medium text-sky-100 italic leading-relaxed">
                   {callSubtitle}
                 </p>
@@ -1088,9 +1454,9 @@ export default function SmartSearchBot({
 
               {/* Live Call Control Actions */}
               <div className="flex items-center gap-4">
-                {/* Mute / Unmute */}
+                {/* ✅ Enhancement 8: Real Mute / Unmute */}
                 <button
-                  onClick={() => setIsMuted(!isMuted)}
+                  onClick={toggleMuteInCall}
                   className={`p-4 rounded-full border-2 transition-all cursor-pointer shadow-lg hover:scale-110 ${
                     isMuted
                       ? "bg-rose-600 border-rose-400 text-white"
