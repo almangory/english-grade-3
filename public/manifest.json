@@ -1,13 +1,19 @@
 {
-  "name": "SMILE 1 English Grade 1 Sudan",
-  "short_name": "SMILE 1",
-  "description": "تطبيق منهج اللغة الإنجليزية التفاعلي للصف الأول الابتدائي - السودان (سلسلة SMILE 1)",
+  "name": "SMILE 3 English Grade 3 Sudan - Sudanese Curriculum",
+  "short_name": "SMILE 3",
+  "description": "تطبيق منهج اللغة الإنجليزية التفاعلي للصف الثالث الابتدائي - السودان (سلسلة SMILE 3)",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f0f9ff",
-  "theme_color": "#0369a1",
+  "background_color": "#064E3B",
+  "theme_color": "#064E3B",
   "orientation": "any",
   "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/icon.svg",
       "sizes": "192x192 512x512",

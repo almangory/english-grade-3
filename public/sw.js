@@ -1,29 +1,131 @@
-const CACHE_NAME = "smile-grade9-offline-v1";
-const STATIC_ASSETS = [
+const CACHE_NAME = "smile-grade3-offline-v3";
+const AUDIO_CACHE_NAME = "smile-audio-cache";
+
+// Core static assets and app shell
+const CORE_ASSETS = [
   "/",
   "/index.html",
-  "https://fav.farm/🇸🇩"
+  "/manifest.json",
+  "/favicon.png",
+  "/icon.svg"
 ];
 
-// Install Event: Cache app shell
+// All dedicated lesson illustrations for all 12 units
+const LESSON_ILLUSTRATIONS = [
+  // Unit 1
+  "/illustrations/lessons/u1_l1.jpg",
+  "/illustrations/lessons/u1_l2.jpg",
+  "/illustrations/lessons/u1_l3.jpg",
+  "/illustrations/lessons/u1_l4.jpg",
+  "/illustrations/lessons/u1_l5.jpg",
+  "/illustrations/lessons/u1_l6.jpg",
+  "/illustrations/lessons/u1_l7.jpg",
+  "/illustrations/lessons/u1_l8.jpg",
+  "/illustrations/lessons/u1_l1.svg",
+  "/illustrations/lessons/u1_l2.svg",
+  "/illustrations/lessons/u1_l3.svg",
+  "/illustrations/lessons/u1_l4.svg",
+  "/illustrations/lessons/u1_l5.svg",
+  "/illustrations/lessons/u1_l6.svg",
+  "/illustrations/lessons/u1_l7.svg",
+  "/illustrations/lessons/u1_l8.svg",
+  // Unit 2
+  "/illustrations/lessons/u2_l1.jpg",
+  "/illustrations/lessons/u2_l2.jpg",
+  "/illustrations/lessons/u2_l3.jpg",
+  "/illustrations/lessons/u2_l4.jpg",
+  "/illustrations/lessons/u2_l5.jpg",
+  "/illustrations/lessons/u2_l6.jpg",
+  "/illustrations/lessons/u2_l7.jpg",
+  "/illustrations/lessons/u2_l8.jpg",
+  "/illustrations/lessons/u2_l1.svg",
+  "/illustrations/lessons/u2_l2.svg",
+  "/illustrations/lessons/u2_l3.svg",
+  "/illustrations/lessons/u2_l4.svg",
+  "/illustrations/lessons/u2_l5.svg",
+  "/illustrations/lessons/u2_l6.svg",
+  "/illustrations/lessons/u2_l7.svg",
+  "/illustrations/lessons/u2_l8.svg",
+  // Unit 3
+  "/illustrations/lessons/u3_l1.jpg",
+  "/illustrations/lessons/u3_l2.jpg",
+  "/illustrations/lessons/u3_l3.jpg",
+  "/illustrations/lessons/u3_l4.jpg",
+  "/illustrations/lessons/u3_l5.jpg",
+  "/illustrations/lessons/u3_l6.jpg",
+  "/illustrations/lessons/u3_l7.jpg",
+  "/illustrations/lessons/u3_l1.svg",
+  "/illustrations/lessons/u3_l2.svg",
+  "/illustrations/lessons/u3_l3.svg",
+  "/illustrations/lessons/u3_l4.svg",
+  "/illustrations/lessons/u3_l5.svg",
+  "/illustrations/lessons/u3_l6.svg",
+  "/illustrations/lessons/u3_l7.svg",
+  "/illustrations/lessons/u3_l8.svg",
+  // Flagship artworks & vectors for Units 4 to 12
+  "/illustrations/lessons/u4_l6.jpg",
+  "/illustrations/lessons/u5_l4.jpg",
+  "/illustrations/lessons/u6_l5.jpg",
+  "/illustrations/lessons/u7_l2.jpg",
+  "/illustrations/lessons/u8_l5.jpg",
+  "/illustrations/lessons/u9_l7.jpg",
+  "/illustrations/lessons/u10_l4.jpg",
+  "/illustrations/lessons/u11_l1.jpg",
+  "/illustrations/lessons/u12_l1.jpg",
+  "/illustrations/lessons/u12_l6.jpg"
+];
+
+// Dynamically generate all SVG fallbacks for Units 4 to 12
+for (let u = 4; u <= 12; u++) {
+  for (let l = 1; l <= 8; l++) {
+    const svgPath = `/illustrations/lessons/u${u}_l${l}.svg`;
+    if (!LESSON_ILLUSTRATIONS.includes(svgPath)) {
+      LESSON_ILLUSTRATIONS.push(svgPath);
+    }
+  }
+}
+
+const ALL_PRECACHE_ASSETS = [...CORE_ASSETS, ...LESSON_ILLUSTRATIONS];
+
+// Install Event: Cache app shell and all educational illustrations
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log("[Service Worker] Pre-caching static assets");
-      return cache.addAll(STATIC_ASSETS);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      console.log("[Service Worker] Pre-caching core assets and illustrations...");
+      // Cache core assets first
+      try {
+        await cache.addAll(CORE_ASSETS);
+      } catch (err) {
+        console.warn("[Service Worker] Core assets precache issue:", err);
+      }
+
+      // Cache illustrations resiliently (continue even if one fails)
+      for (const asset of LESSON_ILLUSTRATIONS) {
+        try {
+          const match = await cache.match(asset);
+          if (!match) {
+            const resp = await fetch(asset);
+            if (resp.ok) {
+              await cache.put(asset, resp);
+            }
+          }
+        } catch {
+          // Ignore individual fetch failure in offline/restricted environment
+        }
+      }
     })
   );
   self.skipWaiting();
 });
 
-// Activate Event: Cleanup old caches
+// Activate Event: Clean up outdated legacy caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME && key !== "smile-audio-cache") {
-            console.log("[Service Worker] Removing old cache:", key);
+          if (key !== CACHE_NAME && key !== AUDIO_CACHE_NAME) {
+            console.log("[Service Worker] Deleting outdated cache:", key);
             return caches.delete(key);
           }
         })
@@ -33,70 +135,109 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch Event: Cache-First / Network-Falling-Back-to-Cache Strategy
+// Fetch Event: Robust Cache-First strategy for assets & illustrations, Network-First for dynamic navigation
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // Skip non-GET requests or chrome extension schemes
+  // Ignore non-GET or unsupported protocols
   if (event.request.method !== "GET" || !url.protocol.startsWith("http")) {
     return;
   }
 
-  // Handle caching for static/local assets and external TTS audio/resources
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
+  // 1. Audio Cache Handler (Youdao / Google Translate / API proxy TTS)
+  const isAudio =
+    url.pathname.includes("/dictvoice") ||
+    url.pathname.includes("/translate_tts") ||
+    url.pathname.includes("/api/tts") ||
+    event.request.destination === "audio";
 
-      return fetch(event.request)
-        .then((networkResponse) => {
-          // If response is invalid, return it directly
-          if (!networkResponse || networkResponse.status !== 200) {
-            return networkResponse;
+  if (isAudio) {
+    event.respondWith(
+      caches.open(AUDIO_CACHE_NAME).then(async (audioCache) => {
+        const cached = await audioCache.match(event.request);
+        if (cached) return cached;
+
+        try {
+          const netRes = await fetch(event.request);
+          if (netRes && netRes.ok) {
+            audioCache.put(event.request, netRes.clone());
           }
+          return netRes;
+        } catch (err) {
+          // Return 404 so that browser falls back to window.speechSynthesis
+          return new Response("", { status: 404, statusText: "Offline Audio Fallback" });
+        }
+      })
+    );
+    return;
+  }
 
-          // Dynamically cache static files (js, css, png, svg, etc.) or TTS API requests
-          const isAudio = url.pathname.includes("/dictvoice") || 
-                          url.pathname.includes("/translate_tts") || 
-                          url.pathname.includes("/api/tts") ||
-                          event.request.destination === "audio";
+  // 2. Cache-First for static assets, local illustrations, icons, scripts & styles
+  const isIllustration = url.pathname.startsWith("/illustrations/");
+  const isStaticAsset =
+    url.pathname.startsWith("/assets/") ||
+    url.pathname === "/favicon.png" ||
+    url.pathname === "/icon.svg" ||
+    url.pathname === "/manifest.json" ||
+    event.request.destination === "image" ||
+    event.request.destination === "script" ||
+    event.request.destination === "style" ||
+    event.request.destination === "font";
 
-          const isAsset = event.request.destination === "document" ||
-                          event.request.destination === "script" ||
-                          event.request.destination === "style" ||
-                          event.request.destination === "font" ||
-                          event.request.destination === "image";
+  if (isIllustration || isStaticAsset) {
+    event.respondWith(
+      caches.match(event.request).then(async (cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
 
-          if (isAudio || isAsset) {
-            const cacheToUse = isAudio ? "smile-audio-cache" : CACHE_NAME;
-            const responseToCache = networkResponse.clone();
-            
-            caches.open(cacheToUse).then((cache) => {
-              // Only cache successful GET responses
-              if (event.request.method === "GET") {
-                cache.put(event.request, responseToCache);
-              }
-            }).catch(err => {
-              console.warn("[Service Worker] Failed to save to cache:", err);
-            });
+        try {
+          const networkResponse = await fetch(event.request);
+          if (networkResponse && networkResponse.status === 200) {
+            const cache = await caches.open(CACHE_NAME);
+            cache.put(event.request, networkResponse.clone());
           }
-
           return networkResponse;
+        } catch (err) {
+          // If offline and request is an illustration, fallback to default svg/icon if available
+          if (isIllustration) {
+            const fallback = await caches.match("/favicon.png");
+            if (fallback) return fallback;
+          }
+          throw err;
+        }
+      })
+    );
+    return;
+  }
+
+  // 3. Navigation Requests (HTML / Page Navigation)
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request)
+        .then(async (netRes) => {
+          if (netRes && netRes.ok) {
+            const cache = await caches.open(CACHE_NAME);
+            cache.put(event.request, netRes.clone());
+          }
+          return netRes;
         })
-        .catch((error) => {
-          console.error("[Service Worker] Fetch failed offline fallback:", error);
-          
-          // Audio fallback or generic offline experience
-          if (event.request.destination === "audio") {
-            return new Response("", { status: 404, statusText: "Offline Audio Not Cached" });
-          }
-          
-          // Return cached index.html for navigation requests
-          if (event.request.mode === "navigate") {
-            return caches.match("/");
-          }
-        });
+        .catch(async () => {
+          // Offline navigation fallback: serve cached index.html
+          const cachedIndex =
+            (await caches.match(event.request)) ||
+            (await caches.match("/index.html")) ||
+            (await caches.match("/"));
+          return cachedIndex || new Response("Offline mode", { status: 200, headers: { "Content-Type": "text/html" } });
+        })
+    );
+    return;
+  }
+
+  // 4. Default: Try Cache, then Network, then Cache
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      return cached || fetch(event.request);
     })
   );
 });

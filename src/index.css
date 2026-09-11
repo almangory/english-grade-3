@@ -1,5 +1,5 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Delius&family=Schoolbell&family=Architects+Daughter&display=swap');
+@import "tailwindcss";
 
 @theme {
   --font-cursive: "Caveat", cursive;
@@ -35,4 +35,18 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Hide scrollbar for mobile horizontal pill scroll tracks */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Safe bottom inset for mobile phones */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0.5rem);
 }

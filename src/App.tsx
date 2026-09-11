@@ -1242,7 +1242,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-sky-50/50 flex flex-col font-sans select-none antialiased p-3 sm:p-6 pb-24 md:pb-6">
+    <div className="min-h-screen bg-sky-50/50 flex flex-col font-sans select-none antialiased p-3 sm:p-6 pb-28 lg:pb-6">
       {/* 🇸🇩 شريط الربط بمنظومة المناهج السودانية التفاعلية وموقع نقلة الرئيسي (SEO Backlink Bar) */}
       <div className="w-full bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-900 text-white px-3 sm:px-6 py-2 text-xs font-sans flex items-center justify-between shadow-md border-b border-emerald-500/20 -mt-3 -mx-3 sm:-mt-6 sm:-mx-6 mb-5 no-print">
         <div className="flex items-center gap-2 font-bold">
@@ -1361,8 +1361,8 @@ export default function App() {
       {/* Main Container Grid */}
       <div className="max-w-6xl w-full mx-auto flex-grow grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Navigation Rail / Left bar - list of book units as beautiful compact Bento tiles */}
-        <aside className="lg:col-span-3 flex flex-col gap-5">
+        {/* Navigation Rail / Left bar - list of book units as beautiful compact Bento tiles (Desktop) */}
+        <aside className="hidden lg:flex lg:col-span-3 flex-col gap-5">
           <div className="bg-white rounded-[32px] p-5 shadow-sm border-b-8 border-r-8 border-sky-100 flex flex-col gap-4">
             <h2 className="text-xs font-black text-sky-800 uppercase tracking-widest flex items-center gap-1.5 border-b border-slate-100 pb-2">
               <BookOpen className="w-4 h-4 text-sky-500" />
@@ -1526,7 +1526,38 @@ export default function App() {
         </aside>
 
         {/* Central interactive screen workspace */}
-        <main id="main-workspace" className="lg:col-span-9 flex flex-col gap-6">
+        <main id="main-workspace" className="col-span-1 lg:col-span-9 flex flex-col gap-5 sm:gap-6">
+          
+          {/* 📱 Mobile Parallel Top Unit Switcher Bar (Visible on mobile/tablet) */}
+          <div className="lg:hidden flex items-center justify-between bg-white p-3.5 rounded-[28px] shadow-sm border-b-4 border-r-4 border-sky-200 no-print">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="text-3xl pt-0.5">{selectedUnit.icon}</span>
+              <div className="min-w-0">
+                <div className="text-[10px] font-black text-sky-600 uppercase tracking-wider">
+                  Unit {selectedUnit.id} of {SMILE_UNITS.length}
+                </div>
+                <div className="text-sm font-black text-sky-950 truncate uppercase leading-tight">
+                  {selectedUnit.title}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <button
+                onClick={() => setShowSoundSettings(true)}
+                className="p-2.5 rounded-[16px] bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-xs cursor-pointer transition-all active:scale-90"
+                title="إعدادات الصوت وسرعة القراءة"
+              >
+                <Volume2 className="w-4 h-4 text-indigo-600" />
+              </button>
+              <button
+                onClick={() => setShowUnitsList(true)}
+                className="bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-black text-xs px-3.5 py-2.5 rounded-[16px] shadow-sm flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
+              >
+                <span>الوحدات</span>
+                <ChevronDown className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
           
           {/* Main Interactive Sub-tabs selection - Bento Style */}
           <div className="bg-white rounded-[32px] p-2 shadow-sm border-b-6 border-sky-100 flex flex-wrap gap-1.5 no-print">
@@ -1680,15 +1711,15 @@ export default function App() {
                             Interactive Lesson Space
                           </h3>
                         </div>
-                        {/* Lesson tabs list inside selected unit - Bento-style */}
-                        <div className="flex flex-wrap gap-2">
+                        {/* Lesson tabs list inside selected unit - Smooth horizontal scroll on mobile, wrap on desktop */}
+                        <div className="flex overflow-x-auto no-scrollbar gap-2 py-1 scroll-smooth w-full sm:flex-wrap">
                           {selectedUnit.lessons.map((l) => (
                             <button
                               key={l.id}
                               onClick={() => handleLessonSelect(l)}
-                              className={`px-4 py-2.5 rounded-[16px] text-xs font-black uppercase tracking-wider transition-all border-b-4 border-r-4 cursor-pointer transform hover:scale-[1.03] ${
+                              className={`flex-shrink-0 px-4 py-2.5 rounded-[16px] text-xs font-black uppercase tracking-wider transition-all border-b-4 border-r-4 cursor-pointer transform hover:scale-[1.03] active:scale-95 ${
                                 selectedLesson.id === l.id
-                                  ? "bg-sky-500 text-white border-sky-700"
+                                  ? "bg-sky-500 text-white border-sky-700 shadow-sm"
                                   : "bg-white hover:bg-slate-50 text-slate-700 border-slate-300"
                               }`}
                             >
@@ -4138,6 +4169,263 @@ export default function App() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* 📱 Mobile Units Drawer Modal (قائمة فصول الكتاب المتنقلة للجوال) */}
+      <AnimatePresence>
+        {showUnitsList && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/70 backdrop-blur-sm no-print">
+            <motion.div
+              initial={{ opacity: 0, y: 150 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 150 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="w-full max-w-xl bg-white rounded-t-[36px] sm:rounded-[36px] shadow-2xl border-t-4 sm:border-4 border-sky-200 p-5 max-h-[85vh] flex flex-col gap-4 overflow-hidden"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-2xl bg-sky-100 flex items-center justify-center text-xl">
+                    📚
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-sky-950 uppercase">فصول كتاب SMILE Grade 3</h3>
+                    <p className="text-xs text-sky-700 font-bold">انقر على أي وحدة للانتقال المباشر إليها (12 وحدة)</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowUnitsList(false)}
+                  className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center cursor-pointer transition-all active:scale-90"
+                  title="إغلاق"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Units Grid */}
+              <div className="overflow-y-auto pr-1 grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[60vh]">
+                {SMILE_UNITS.map((u) => {
+                  const isSelected = selectedUnit.id === u.id;
+                  return (
+                    <button
+                      key={u.id}
+                      onClick={() => {
+                        handleUnitSelect(u);
+                        setShowUnitsList(false);
+                      }}
+                      className={`w-full text-left p-3.5 rounded-[22px] border-b-4 transition-all flex items-center gap-3 cursor-pointer ${
+                        isSelected
+                          ? `${u.color} border-amber-600 shadow-md font-bold text-amber-950 ring-2 ring-amber-400`
+                          : "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700"
+                      }`}
+                    >
+                      <span className="text-2xl pt-0.5">{u.icon}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[10px] font-black uppercase tracking-wider opacity-75">Unit {u.id}</div>
+                        <div className="text-xs font-black truncate uppercase text-sky-950 leading-tight">{u.title}</div>
+                        <div className="text-[9px] text-slate-500 font-bold mt-0.5">{u.lessons.length} Interactive Lessons</div>
+                      </div>
+                      {isSelected && (
+                        <span className="text-[10px] bg-amber-500 text-white font-black px-2 py-0.5 rounded-full shadow-xs">النشط</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* 📱 Mobile Sound Settings Modal (إعدادات الصوت وسرعة القراءة للجوال) */}
+      <AnimatePresence>
+        {showSoundSettings && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/70 backdrop-blur-sm no-print">
+            <motion.div
+              initial={{ opacity: 0, y: 150 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 150 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="w-full max-w-md bg-white rounded-t-[36px] sm:rounded-[36px] shadow-2xl border-t-4 sm:border-4 border-indigo-200 p-5 max-h-[85vh] flex flex-col gap-4 overflow-hidden"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-2xl bg-indigo-100 flex items-center justify-center text-xl">
+                    🔊
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-indigo-950 uppercase">إعدادات الصوت والنطق</h3>
+                    <p className="text-xs text-indigo-700 font-bold">محرك النطق وسرعة القراءة</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowSoundSettings(false)}
+                  className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center cursor-pointer transition-all active:scale-90"
+                  title="إغلاق"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Engine Selector */}
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => setVoiceMode("gemini")}
+                  className={`w-full text-left p-3 rounded-[18px] border-b-4 transition-all flex items-center justify-between cursor-pointer ${
+                    voiceMode === "gemini"
+                      ? "bg-indigo-600 border-indigo-800 text-white font-black"
+                      : "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700 font-bold"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">✨</span>
+                    <div>
+                      <div className="text-xs font-black">Embedded Voice (Free & Fast)</div>
+                      <div className="text-[10px] opacity-80">High Quality AI Audio Engine</div>
+                    </div>
+                  </div>
+                  {voiceMode === "gemini" && <CheckCircle className="w-4 h-4 text-emerald-300" />}
+                </button>
+
+                <button
+                  onClick={() => setVoiceMode("system")}
+                  className={`w-full text-left p-3 rounded-[18px] border-b-4 transition-all flex items-center justify-between cursor-pointer ${
+                    voiceMode === "system"
+                      ? "bg-indigo-600 border-indigo-800 text-white font-black"
+                      : "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700 font-bold"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">⚡</span>
+                    <div>
+                      <div className="text-xs font-black">Device System Voice</div>
+                      <div className="text-[10px] opacity-80">100% Offline Local Device Voice</div>
+                    </div>
+                  </div>
+                  {voiceMode === "system" && <CheckCircle className="w-4 h-4 text-emerald-300" />}
+                </button>
+              </div>
+
+              {/* Speed Preset Controller */}
+              <div className="bg-slate-50 p-3.5 rounded-[22px] border border-slate-100 flex flex-col gap-2">
+                <div className="flex justify-between items-center text-slate-800">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-indigo-950">
+                    ⏱️ Reading Speed
+                  </span>
+                  <span className="text-xs font-black px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-lg">
+                    {readingSpeed}x
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-5 gap-1 bg-white p-1 rounded-xl border border-slate-100">
+                  {[
+                    { label: "Slow", value: 0.6 },
+                    { label: "Calm", value: 0.75 },
+                    { label: "Relaxed", value: 0.85 },
+                    { label: "Normal", value: 1.0 },
+                    { label: "Fast", value: 1.2 }
+                  ].map((preset) => (
+                    <button
+                      key={preset.value}
+                      onClick={() => setReadingSpeed(preset.value)}
+                      className={`py-1.5 px-0.5 rounded-lg text-[10px] font-black transition-all cursor-pointer text-center leading-none ${
+                        readingSpeed === preset.value
+                          ? "bg-indigo-600 text-white shadow-xs"
+                          : "text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      <span className="block mb-0.5">{preset.value}x</span>
+                      <span className="text-[8px] opacity-90">{preset.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Test Voice Button */}
+              <button
+                onClick={() => speakText("Welcome to SMILE English Grade 3 primary school!", "Kore")}
+                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs uppercase py-3 px-4 rounded-[18px] border-b-4 border-emerald-700 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+              >
+                <Volume2 className="w-4 h-4" />
+                <span>Test Word Sound Now</span>
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* 📱 Mobile Parallel Sticky Bottom Navigation Bar (Thumb-Accessible for Smartphones) */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t-2 border-sky-200 shadow-[0_-6px_20px_rgba(0,0,0,0.08)] px-2 py-1.5 flex items-center justify-around safe-bottom no-print">
+        {/* 1. Pupil's Book (Lessons) */}
+        <button
+          onClick={() => {
+            navigateToTab("book");
+            setBookSection("lessons");
+          }}
+          className={`flex-1 py-1 px-1 flex flex-col items-center justify-center transition-all cursor-pointer rounded-2xl ${
+            activeTab === "book" && bookSection === "lessons"
+              ? "text-sky-600 font-black scale-105 bg-sky-50 shadow-xs"
+              : "text-slate-500 font-bold hover:text-sky-700"
+          }`}
+        >
+          <span className="text-xl">📖</span>
+          <span className="text-[10px] leading-tight mt-0.5">الدروس</span>
+        </button>
+
+        {/* 2. Pupil's Activities */}
+        <button
+          onClick={() => {
+            navigateToTab("book");
+            setBookSection("activities");
+          }}
+          className={`flex-1 py-1 px-1 flex flex-col items-center justify-center transition-all cursor-pointer rounded-2xl ${
+            activeTab === "book" && bookSection === "activities"
+              ? "text-amber-600 font-black scale-105 bg-amber-50 shadow-xs"
+              : "text-slate-500 font-bold hover:text-amber-700"
+          }`}
+        >
+          <span className="text-xl">✏️</span>
+          <span className="text-[10px] leading-tight mt-0.5">الأنشطة</span>
+        </button>
+
+        {/* 3. Quiz Games & Dictation */}
+        <button
+          onClick={() => navigateToTab("quiz")}
+          className={`flex-1 py-1 px-1 flex flex-col items-center justify-center transition-all cursor-pointer rounded-2xl ${
+            activeTab === "quiz" || activeTab === "game" || activeTab === "dictation"
+              ? "text-emerald-600 font-black scale-105 bg-emerald-50 shadow-xs"
+              : "text-slate-500 font-bold hover:text-emerald-700"
+          }`}
+        >
+          <span className="text-xl">🎮</span>
+          <span className="text-[10px] leading-tight mt-0.5">الألعاب</span>
+        </button>
+
+        {/* 4. Speaking Dialogue Builder */}
+        <button
+          onClick={() => navigateToTab("adventure")}
+          className={`flex-1 py-1 px-1 flex flex-col items-center justify-center transition-all cursor-pointer rounded-2xl ${
+            activeTab === "adventure"
+              ? "text-purple-600 font-black scale-105 bg-purple-50 shadow-xs"
+              : "text-slate-500 font-bold hover:text-purple-700"
+          }`}
+        >
+          <span className="text-xl">💬</span>
+          <span className="text-[10px] leading-tight mt-0.5">محادثة</span>
+        </button>
+
+        {/* 5. Units Drawer Trigger */}
+        <button
+          onClick={() => setShowUnitsList(true)}
+          className={`flex-1 py-1 px-1 flex flex-col items-center justify-center transition-all cursor-pointer rounded-2xl ${
+            showUnitsList
+              ? "text-rose-600 font-black scale-105 bg-rose-50 shadow-xs"
+              : "text-slate-500 font-bold hover:text-rose-700"
+          }`}
+        >
+          <span className="text-xl">📚</span>
+          <span className="text-[10px] leading-tight mt-0.5">الوحدات</span>
+        </button>
+      </nav>
 
       {/* Floating Smart Search Helper Bot (الباحث المنهجي الذكي) */}
       <SmartSearchBot 

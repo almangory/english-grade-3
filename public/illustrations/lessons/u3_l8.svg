@@ -1,1 +1,169 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 340" width="100%" height="100%"> <defs> <linearGradient id="grad_u3_l8" x1="0%" y1="0%" x2="100%" y2="100%"> <stop offset="0%" stop-color="#7c3aed"/> <stop offset="50%" stop-color="#a855f7"/> <stop offset="100%" stop-color="#f3e8ff"/> </linearGradient> <filter id="shadow_u3_l8" x="-10%" y="-10%" width="120%" height="120%"> <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.25"/> </filter> </defs> <!-- Background Card --> <rect width="600" height="340" rx="28" fill="url(#grad_u3_l8)"/> <circle cx="530" cy="60" r="80" fill="#ffffff" opacity="0.1"/> <circle cx="70" cy="270" r="100" fill="#ffffff" opacity="0.1"/> <circle cx="300" cy="170" r="130" fill="#ffffff" opacity="0.08"/> <!-- Central Highlight Card --> <g transform="translate(300, 160)" filter="url(#shadow_u3_l8)"> <rect x="-240" y="-100" width="480" height="200" rx="24" fill="#ffffff" opacity="0.96"/> <rect x="-236" y="-96" width="472" height="192" rx="20" fill="none" stroke="#7c3aed" stroke-width="2" opacity="0.35"/> <!-- Top Pill Badge --> <rect x="-110" y="-120" width="220" height="34" rx="17" fill="#7c3aed"/> <text x="0" y="-98" font-family="system-ui, sans-serif" font-size="12" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1">UNIT 3 • LESSON 8</text> <!-- Big Central Educational Visual Icon --> <circle cx="0" cy="-20" r="48" fill="#ede9fe" stroke="#7c3aed" stroke-width="3.5"/> <text x="0" y="-2" font-size="44" text-anchor="middle">🔍</text> <!-- Lesson Title --> <text x="0" y="48" font-family="system-ui, sans-serif" font-size="18" font-weight="900" fill="#0f172a" text-anchor="middle">Finding Ali</text> <!-- Educational Context Details --> <text x="0" y="72" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#475569" text-anchor="middle">Recognizing friends by appearance and clothes</text> </g> <!-- Bottom Nano Banana Quality Tag --> <g transform="translate(300, 310)"> <rect x="-145" y="-14" width="290" height="28" rx="14" fill="#0f172a" opacity="0.85"/> <text x="0" y="4" font-family="system-ui, sans-serif" font-size="10" font-weight="800" fill="#facc15" text-anchor="middle" letter-spacing="0.5">🎨 NANO BANANA PRO • SMILE BOOK 3</text> </g> </svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="100%" height="100%">
+  <defs>
+    <linearGradient id="wallGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+    <linearGradient id="floorGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#bae6fd"/>
+    </linearGradient>
+    <linearGradient id="deskGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b45309"/>
+      <stop offset="100%" stop-color="#78350f"/>
+    </linearGradient>
+    <linearGradient id="tobeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="shirtGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="100%" stop-color="#b91c1c"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <!-- Wall and Floor Background -->
+  <rect x="0" y="0" width="800" height="320" fill="url(#wallGrad)"/>
+  <rect x="0" y="320" width="800" height="130" fill="url(#floorGrad)"/>
+  <line x1="0" y1="320" x2="800" y2="320" stroke="#64748b" stroke-width="4"/>
+
+  <!-- Window overlooking Sudanese sunny outdoors -->
+  <g transform="translate(60, 40)">
+    <rect x="0" y="0" width="160" height="150" rx="12" fill="url(#skyGrad)" stroke="#64748b" stroke-width="6"/>
+    <!-- Sun -->
+    <circle cx="125" cy="35" r="22" fill="#facc15" opacity="0.9"/>
+    <!-- Palm Tree outside -->
+    <path d="M 40 150 Q 55 100 65 60" stroke="#78350f" stroke-width="8" stroke-linecap="round" fill="none"/>
+    <path d="M 65 60 Q 30 50 15 65" stroke="#15803d" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <path d="M 65 60 Q 50 35 30 38" stroke="#15803d" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <path d="M 65 60 Q 80 35 100 40" stroke="#15803d" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <path d="M 65 60 Q 95 55 110 70" stroke="#15803d" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <!-- Window Frame Cross -->
+    <line x1="80" y1="0" x2="80" y2="150" stroke="#64748b" stroke-width="4"/>
+    <line x1="0" y1="75" x2="160" y2="75" stroke="#64748b" stroke-width="4"/>
+  </g>
+
+  <!-- Official Police Sign on Wall -->
+  <g transform="translate(300, 35)">
+    <rect x="-120" y="0" width="240" height="60" rx="10" fill="#1e3a8a" stroke="#facc15" stroke-width="3" filter="url(#cardShadow)"/>
+    <text x="0" y="26" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="900" fill="#facc15" text-anchor="middle" letter-spacing="1">POLICE STATION</text>
+    <text x="0" y="46" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="2">LOST &amp; FOUND DESK</text>
+  </g>
+
+  <!-- Police Desk & Officer on the Right -->
+  <g transform="translate(620, 160)">
+    <!-- Officer Body -->
+    <path d="M -30 90 L -25 40 L 25 40 L 30 90 Z" fill="#1e40af"/>
+    <!-- Collar & Tie -->
+    <polygon points="-10,40 10,40 0,60" fill="#ffffff"/>
+    <polygon points="-4,45 4,45 0,80" fill="#1e3a8a"/>
+    <!-- Badge -->
+    <polygon points="12,50 18,50 20,56 15,62 10,56" fill="#facc15"/>
+    <!-- Officer Head -->
+    <circle cx="0" cy="15" r="24" fill="#78350f"/>
+    <!-- Officer Police Cap -->
+    <path d="M -26 10 C -26 -15 26 -15 26 10 Z" fill="#1e3a8a"/>
+    <path d="M -30 10 Q 0 16 30 10 L 28 5 Q 0 10 -28 5 Z" fill="#0f172a"/>
+    <circle cx="0" cy="-3" r="5" fill="#facc15"/>
+    <!-- Face details -->
+    <ellipse cx="-7" cy="16" rx="2.5" ry="3" fill="#0f172a"/>
+    <ellipse cx="7" cy="16" rx="2.5" ry="3" fill="#0f172a"/>
+    <path d="M -6 26 Q 0 32 6 26" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <!-- Officer Arm gesturing towards Ali -->
+    <path d="M -25 50 Q -60 70 -80 75" stroke="#1e40af" stroke-width="12" stroke-linecap="round" fill="none"/>
+    <circle cx="-83" cy="76" r="6" fill="#78350f"/>
+
+    <!-- Desk -->
+    <rect x="-110" y="80" width="160" height="95" rx="8" fill="url(#deskGrad)" stroke="#451a03" stroke-width="3"/>
+    <line x1="-110" y1="105" x2="50" y2="105" stroke="#451a03" stroke-width="2"/>
+    <!-- Telephone on Desk -->
+    <rect x="-30" y="68" width="28" height="14" rx="3" fill="#0f172a"/>
+    <path d="M -34 66 Q -16 58 2 66" stroke="#334155" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <!-- Papers on Desk -->
+    <rect x="-85" y="72" width="30" height="12" rx="2" fill="#ffffff" transform="rotate(-5 -70 75)"/>
+  </g>
+
+  <!-- Mother Amna (Joyful Reunion) -->
+  <g transform="translate(240, 170)">
+    <!-- Sudanese Tobe flowing fabric -->
+    <path d="M -40 85 Q -30 15 0 15 Q 30 15 40 85 Q 30 180 15 200 L -15 200 Q -30 180 -40 85 Z" fill="url(#tobeGrad)"/>
+    <path d="M -30 50 Q 0 70 30 50 L 25 150 Q 0 170 -25 150 Z" fill="#fef08a" opacity="0.6"/>
+    <!-- Mother Head & Hair/Tarha Wrap -->
+    <circle cx="0" cy="-5" r="26" fill="#fef08a"/>
+    <circle cx="0" cy="-3" r="22" fill="#78350f"/>
+    <!-- Head wrap folds -->
+    <path d="M -22 -15 Q 0 -28 22 -15 Q 26 5 20 15 Q 0 20 -20 15 Z" fill="url(#tobeGrad)" opacity="0.85"/>
+    <!-- Eyes & Gentle Smiling Face -->
+    <ellipse cx="-7" cy="-2" rx="2.5" ry="3.5" fill="#0f172a"/>
+    <ellipse cx="7" cy="-2" rx="2.5" ry="3.5" fill="#0f172a"/>
+    <path d="M -7 -8 Q -4 -12 -1 -8" stroke="#0f172a" stroke-width="1.5" fill="none"/>
+    <path d="M 1 -8 Q 4 -12 7 -8" stroke="#0f172a" stroke-width="1.5" fill="none"/>
+    <path d="M -8 10 Q 0 18 8 10" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <!-- Mother Bending Open Arms towards Ali -->
+    <path d="M 25 55 Q 65 75 90 95" stroke="url(#tobeGrad)" stroke-width="14" stroke-linecap="round" fill="none"/>
+    <circle cx="92" cy="97" r="7" fill="#78350f"/>
+    <path d="M -25 55 Q 5 75 35 105" stroke="url(#tobeGrad)" stroke-width="14" stroke-linecap="round" fill="none"/>
+    <circle cx="37" cy="107" r="7" fill="#78350f"/>
+  </g>
+
+  <!-- Boy Ali in Bright Red T-Shirt (Central Star of Lesson 8) -->
+  <g transform="translate(420, 220)">
+    <!-- Red T-Shirt Body -->
+    <path d="M -22 35 L -18 0 L 18 0 L 22 35 Z" fill="url(#shirtGrad)"/>
+    <!-- Collar -->
+    <path d="M -8 0 Q 0 6 8 0" stroke="#ffffff" stroke-width="3" fill="none"/>
+    <!-- Blue Shorts -->
+    <rect x="-18" y="35" width="36" height="28" rx="4" fill="#1d4ed8"/>
+    <!-- Legs -->
+    <rect x="-14" y="63" width="10" height="40" rx="4" fill="#78350f"/>
+    <rect x="4" y="63" width="10" height="40" rx="4" fill="#78350f"/>
+    <!-- Red and White Sneakers -->
+    <ellipse cx="-9" cy="106" rx="12" ry="6" fill="#ef4444"/>
+    <rect x="-17" y="106" width="18" height="3" fill="#ffffff"/>
+    <ellipse cx="9" cy="106" rx="12" ry="6" fill="#ef4444"/>
+    <rect x="1" y="106" width="18" height="3" fill="#ffffff"/>
+    <!-- Head -->
+    <circle cx="0" cy="-20" r="22" fill="#78350f"/>
+    <!-- Curly Hair -->
+    <path d="M -22 -24 C -24 -42 24 -42 22 -24 C 20 -20 18 -16 16 -18 C 10 -28 -10 -28 -16 -18 Z" fill="#0f172a"/>
+    <!-- Big Happy Eyes -->
+    <ellipse cx="-7" cy="-20" rx="3" ry="4" fill="#ffffff"/>
+    <circle cx="-6" cy="-20" r="2" fill="#0f172a"/>
+    <ellipse cx="7" cy="-20" rx="3" ry="4" fill="#ffffff"/>
+    <circle cx="8" cy="-20" r="2" fill="#0f172a"/>
+    <!-- Broad Happy Child Smile -->
+    <path d="M -8 -9 Q 0 0 8 -9" stroke="#ffffff" stroke-width="3" stroke-linecap="round" fill="#b91c1c"/>
+    <!-- Ali's Open Arms running to Mum -->
+    <path d="M -18 10 Q -45 15 -60 2" stroke="url(#shirtGrad)" stroke-width="9" stroke-linecap="round" fill="none"/>
+    <circle cx="-62" cy="1" r="5.5" fill="#78350f"/>
+    <path d="M 18 10 Q 35 25 45 40" stroke="url(#shirtGrad)" stroke-width="9" stroke-linecap="round" fill="none"/>
+    <circle cx="47" cy="42" r="5.5" fill="#78350f"/>
+
+    <!-- Red T-Shirt Label Tag -->
+    <rect x="-24" y="42" width="48" height="16" rx="8" fill="#ffffff" stroke="#b91c1c" stroke-width="1.5"/>
+    <text x="0" y="53" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="900" fill="#b91c1c" text-anchor="middle">RED SHIRT</text>
+  </g>
+
+  <!-- Speech Callout: "Hello, mum!" & "Hello, Ali!" -->
+  <g transform="translate(350, 140)">
+    <rect x="-70" y="-30" width="140" height="34" rx="14" fill="#ffffff" stroke="#38bdf8" stroke-width="2.5" filter="url(#cardShadow)"/>
+    <polygon points="10,4 20,4 26,14" fill="#ffffff"/>
+    <text x="0" y="-9" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="900" fill="#0369a1" text-anchor="middle">"Hello, Ali!" 💖</text>
+  </g>
+
+  <!-- Bottom Educational Banner Pill -->
+  <g transform="translate(400, 420)">
+    <rect x="-210" y="-16" width="420" height="32" rx="16" fill="#0f172a" opacity="0.92"/>
+    <text x="0" y="5" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="800" fill="#facc15" text-anchor="middle" letter-spacing="0.5">
+      UNIT 3 • LESSON 8: FINDING ALI IN HIS RED T-SHIRT 👕
+    </text>
+  </g>
+</svg>
