@@ -1,4 +1,4 @@
-const CACHE_NAME = "smile-grade3-offline-v4";
+const CACHE_NAME = "smile-grade3-offline-v5";
 const AUDIO_CACHE_NAME = "smile-audio-cache";
 
 // Core static assets and app shell
@@ -62,6 +62,7 @@ const LESSON_ILLUSTRATIONS = [
   "/illustrations/lessons/u3_l5.jpg",
   "/illustrations/lessons/u3_l6.jpg",
   "/illustrations/lessons/u3_l7.jpg",
+  "/illustrations/lessons/u3_l8.jpg",
   "/illustrations/lessons/u3_l1.svg",
   "/illustrations/lessons/u3_l2.svg",
   "/illustrations/lessons/u3_l3.svg",
@@ -70,9 +71,22 @@ const LESSON_ILLUSTRATIONS = [
   "/illustrations/lessons/u3_l6.svg",
   "/illustrations/lessons/u3_l7.svg",
   "/illustrations/lessons/u3_l8.svg",
-  // Flagship artworks & vectors for Units 4 to 12
+  // Unit 4 (100% Complete)
+  "/illustrations/lessons/u4_l1.jpg",
+  "/illustrations/lessons/u4_l2.jpg",
+  "/illustrations/lessons/u4_l3.jpg",
+  "/illustrations/lessons/u4_l4.jpg",
+  "/illustrations/lessons/u4_l5.jpg",
   "/illustrations/lessons/u4_l6.jpg",
+  "/illustrations/lessons/u4_l7.jpg",
+  "/illustrations/lessons/u4_l8.jpg",
+  // Unit 5
+  "/illustrations/lessons/u5_l1.jpg",
+  "/illustrations/lessons/u5_l2.jpg",
+  "/illustrations/lessons/u5_l3.jpg",
   "/illustrations/lessons/u5_l4.jpg",
+  "/illustrations/lessons/u5_l5.jpg",
+  // Flagship artworks & vectors for Units 6 to 12
   "/illustrations/lessons/u6_l5.jpg",
   "/illustrations/lessons/u7_l2.jpg",
   "/illustrations/lessons/u8_l5.jpg",
