@@ -35,6 +35,7 @@ import { searchSMILECurriculum, SearchResult } from "../smartSearch";
 import { Lesson, UnitItem, WordItem } from "../types";
 
 const CLOUD_FALLBACK_ENDPOINT = "https://local-ai-arsenal.pages.dev/api/mentor/chat";
+const CLOUD_TTS_ENDPOINT = "https://local-ai-arsenal.pages.dev/api/tts";
 const NAQLA_BOT_AVATAR = "/assets/naqla_bot_avatar.png";
 
 interface SmartSearchBotProps {
@@ -116,7 +117,8 @@ export default function SmartSearchBot({
   const [resolvedEndpoint, setResolvedEndpoint] = useState<string>(CLOUD_FALLBACK_ENDPOINT);
   const [isLocalConnected, setIsLocalConnected] = useState(false);
   // Resolved TTS base URL (local server or same-origin dev server)
-  const [ttsBaseUrl, setTtsBaseUrl] = useState<string>("");
+  // NOTE: We use CLOUD_TTS_ENDPOINT as primary; local server auto-detected as upgrade only
+  const [ttsBaseUrl, setTtsBaseUrl] = useState<string>(CLOUD_TTS_ENDPOINT);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -192,9 +194,9 @@ export default function SmartSearchBot({
     }
 
     // Also detect local dev server TTS (Express on 3000 or Vite proxy)
+    // Only upgrades to local if found; Cloudflare TTS is the default
     async function resolveTts() {
       const ttsCandidates = [
-        "/api/tts",  // Same-origin (Vite dev proxy or production)
         "http://localhost:3000/api/tts",
         "http://127.0.0.1:3000/api/tts"
       ];
@@ -206,10 +208,10 @@ export default function SmartSearchBot({
           clearTimeout(tid);
           if (res.ok && isMounted) {
             setTtsBaseUrl(url.replace("?text=hi", ""));
-            return;
+            return; // upgrade to faster local server
           }
         } catch (e) {
-          // continue
+          // continue — keep CLOUD_TTS_ENDPOINT as default
         }
       }
     }
@@ -510,9 +512,9 @@ export default function SmartSearchBot({
       if (onEndCallback) onEndCallback();
     };
 
-    // Try server-side TTS first (higher quality)
+    // Try server-side TTS first (higher quality) — ttsBaseUrl defaults to CLOUD_TTS_ENDPOINT
     if (ttsBaseUrl) {
-      const ttsUrl = ttsBaseUrl + "?text=" + encodeURIComponent(clean);
+      const ttsUrl = ttsBaseUrl + "?text=" + encodeURIComponent(clean) + "&speaker=en-female";
       fetch(ttsUrl)
         .then(res => {
           if (!res.ok) throw new Error("TTS status " + res.status);
