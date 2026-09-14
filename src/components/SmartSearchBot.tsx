@@ -138,6 +138,8 @@ export default function SmartSearchBot({
   const isCallActiveRef = useRef<boolean>(false);
   const isProcessingCallRef = useRef<boolean>(false);
   const isMutedRef = useRef<boolean>(false);
+  const callStartTimeRef = useRef<number>(0);
+  const sustainVoiceRef = useRef<number>(0);
 
   // Server-side TTS Audio element for high-fidelity playback
   const serverAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -299,8 +301,12 @@ export default function SmartSearchBot({
     }
   }, []);
 
-  // ⚡ Barge-In Interruption: instantly cancel bot speech when child speaks
-  const triggerBargeInInterruption = useCallback(() => {
+  // ⚡ Barge-In Interruption: cancel bot speech only when child speaks loudly and sustainably
+  const triggerBargeInInterruption = useCallback((force = false) => {
+    // Never interrupt during the first 3.5s (allow greeting to be heard!)
+    if (!force && Date.now() - callStartTimeRef.current < 3500) {
+      return;
+    }
     if (isBotSpeakingRef.current) {
       // 1. Stop server-side audio playback
       if (serverAudioRef.current) {
@@ -359,18 +365,29 @@ export default function SmartSearchBot({
         const normalizedVolume = Math.min(100, Math.round((average / 128) * 100));
         setUserMicLevel(normalizedVolume);
 
-        // ✅ Fix 1: Dynamic threshold — raise to 45 when bot is speaking
-        // to prevent echo from speakers triggering interruption
-        const threshold = isBotSpeakingRef.current ? 45 : 18;
+        // ✅ Protected Barge-in: Prevents speaker sound from cutting off bot voice
+        const isSpeaking = isBotSpeakingRef.current;
+        const callAge = Date.now() - callStartTimeRef.current;
 
-        if (normalizedVolume > threshold) {
-          setIsUserTalking(true);
-          // If bot was speaking, cut it off NOW!
-          if (isBotSpeakingRef.current) {
-            triggerBargeInInterruption();
+        if (isSpeaking) {
+          // When bot speaks: require sustained voice (>200ms) with high volume (>60) and past initial 3.5s
+          if (normalizedVolume >= 60 && callAge >= 3500) {
+            sustainVoiceRef.current += 1;
+            if (sustainVoiceRef.current >= 4) {
+              setIsUserTalking(true);
+              triggerBargeInInterruption(false);
+              sustainVoiceRef.current = 0;
+            }
+          } else {
+            sustainVoiceRef.current = Math.max(0, sustainVoiceRef.current - 1);
           }
         } else {
-          setIsUserTalking(false);
+          sustainVoiceRef.current = 0;
+          if (normalizedVolume > 18) {
+            setIsUserTalking(true);
+          } else {
+            setIsUserTalking(false);
+          }
         }
 
         // ✅ Enhancement 10: Dynamic VU meter bars
@@ -523,6 +540,8 @@ export default function SmartSearchBot({
         .then(blob => {
           const blobUrl = URL.createObjectURL(blob);
           const audio = new Audio(blobUrl);
+          audio.volume = 1.0;
+          audio.muted = false;
           serverAudioRef.current = audio;
 
           audio.onended = () => {
@@ -774,6 +793,8 @@ export default function SmartSearchBot({
       currentAccumulatedTranscript.current = "";
     } else {
       // ═══ ANSWER / START CALL ═══
+      callStartTimeRef.current = Date.now();
+      sustainVoiceRef.current = 0;
       // ✅ Enhancement 7: Unlock AudioContext on user gesture (iOS/Safari)
       unlockAudioContext();
 
