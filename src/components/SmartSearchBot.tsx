@@ -143,6 +143,7 @@ export default function SmartSearchBot({
 
   // Server-side TTS Audio element for high-fidelity playback
   const serverAudioRef = useRef<HTMLAudioElement | null>(null);
+  const activeTtsAbortRef = useRef<AbortController | null>(null);
   // Keep-alive timer for resilient speech recognition restart
   const keepAliveTimerRef = useRef<any>(null);
   // Dynamic VU meter bar heights
@@ -442,6 +443,10 @@ export default function SmartSearchBot({
   // Browser SpeechSynthesis fallback
   const speakWithBrowserFallback = useCallback((text: string, onEndCallback?: () => void) => {
     try {
+      if (!isCallActiveRef.current && !botSoundEnabled) {
+        if (onEndCallback) onEndCallback();
+        return;
+      }
       window.speechSynthesis.cancel();
       const clean = cleanTextForTTS(text);
       if (!clean) {
@@ -464,6 +469,10 @@ export default function SmartSearchBot({
       }
 
       utterance.onstart = () => {
+        if (!isCallActiveRef.current && !botSoundEnabled) {
+          try { window.speechSynthesis.cancel(); } catch(e){}
+          return;
+        }
         isBotSpeakingRef.current = true;
         setIsBotSpeaking(true);
         setCallStatusState("speaking");
@@ -531,13 +540,21 @@ export default function SmartSearchBot({
 
     // Try server-side TTS first (higher quality) — ttsBaseUrl defaults to CLOUD_TTS_ENDPOINT
     if (ttsBaseUrl) {
+      if (activeTtsAbortRef.current) {
+        try { activeTtsAbortRef.current.abort(); } catch(e) {}
+      }
+      const controller = new AbortController();
+      activeTtsAbortRef.current = controller;
+
       const ttsUrl = ttsBaseUrl + "?text=" + encodeURIComponent(clean) + "&speaker=en-female";
-      fetch(ttsUrl)
+      fetch(ttsUrl, { signal: controller.signal })
         .then(res => {
           if (!res.ok) throw new Error("TTS status " + res.status);
           return res.blob();
         })
         .then(blob => {
+          activeTtsAbortRef.current = null;
+          if (!isCallActiveRef.current && !botSoundEnabled) return;
           const blobUrl = URL.createObjectURL(blob);
           const audio = new Audio(blobUrl);
           audio.volume = 1.0;
@@ -547,30 +564,37 @@ export default function SmartSearchBot({
           audio.onended = () => {
             URL.revokeObjectURL(blobUrl);
             serverAudioRef.current = null;
-            afterSpeechEnd();
+            if (isCallActiveRef.current || botSoundEnabled) afterSpeechEnd();
           };
 
           audio.onerror = () => {
             URL.revokeObjectURL(blobUrl);
             serverAudioRef.current = null;
-            // Fallback to browser speech
-            speakWithBrowserFallback(clean, afterSpeechEnd);
+            if (isCallActiveRef.current || botSoundEnabled) {
+              speakWithBrowserFallback(clean, afterSpeechEnd);
+            }
           };
 
           audio.play().catch(() => {
-            // Autoplay blocked — fall back to browser speech
             URL.revokeObjectURL(blobUrl);
             serverAudioRef.current = null;
-            speakWithBrowserFallback(clean, afterSpeechEnd);
+            if (isCallActiveRef.current || botSoundEnabled) {
+              speakWithBrowserFallback(clean, afterSpeechEnd);
+            }
           });
         })
-        .catch(() => {
-          // Network error — fall back to browser speech
-          speakWithBrowserFallback(clean, afterSpeechEnd);
+        .catch(err => {
+          activeTtsAbortRef.current = null;
+          if (err && err.name === 'AbortError') return;
+          if (isCallActiveRef.current || botSoundEnabled) {
+            speakWithBrowserFallback(clean, afterSpeechEnd);
+          }
         });
     } else {
       // No server TTS available — use browser speech directly
-      speakWithBrowserFallback(clean, afterSpeechEnd);
+      if (isCallActiveRef.current || botSoundEnabled) {
+        speakWithBrowserFallback(clean, afterSpeechEnd);
+      }
     }
   }, [botSoundEnabled, ttsBaseUrl, speakWithBrowserFallback]);
 
@@ -765,7 +789,11 @@ export default function SmartSearchBot({
       // ═══ HANG UP ═══
       setIsLiveCallActive(false);
       setCallStatusState("idle");
-      // Stop all audio
+      // Stop all audio & abort in-flight downloads
+      if (activeTtsAbortRef.current) {
+        try { activeTtsAbortRef.current.abort(); } catch(e) {}
+        activeTtsAbortRef.current = null;
+      }
       if (serverAudioRef.current) {
         serverAudioRef.current.pause();
         serverAudioRef.current.currentTime = 0;
